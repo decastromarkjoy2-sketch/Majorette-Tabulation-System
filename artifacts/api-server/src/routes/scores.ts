@@ -79,9 +79,11 @@ router.post("/scores", async (req, res): Promise<void> => {
     return;
   }
 
-  const weightedCriterion1 = rawCriterion1 * WEIGHTS.c1;
-  const weightedCriterion2 = rawCriterion2 * WEIGHTS.c2;
-  const weightedCriterion3 = rawCriterion3 * WEIGHTS.c3;
+  // Raw scores are already on the weighted scale (0-50, 0-20, 0-30),
+  // so the weighted score IS the raw score — just sum them.
+  const weightedCriterion1 = rawCriterion1;
+  const weightedCriterion2 = rawCriterion2;
+  const weightedCriterion3 = rawCriterion3;
   const deductionTotal = deductionCount * 10;
   const totalScore = weightedCriterion1 + weightedCriterion2 + weightedCriterion3 - deductionTotal;
 

@@ -94,13 +94,13 @@ export const ListScoresResponse = zod.array(ListScoresResponseItem)
  */
 
 export const submitScoreBodyRawCriterion1Min = 0;
-export const submitScoreBodyRawCriterion1Max = 100;
+export const submitScoreBodyRawCriterion1Max = 50;
 
 export const submitScoreBodyRawCriterion2Min = 0;
-export const submitScoreBodyRawCriterion2Max = 100;
+export const submitScoreBodyRawCriterion2Max = 20;
 
 export const submitScoreBodyRawCriterion3Min = 0;
-export const submitScoreBodyRawCriterion3Max = 100;
+export const submitScoreBodyRawCriterion3Max = 30;
 
 export const submitScoreBodyDeductionCountMin = 0;
 

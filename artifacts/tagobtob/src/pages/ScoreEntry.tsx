@@ -22,15 +22,15 @@ const SCHOOLS = [
 ];
 
 const GROUP_CRITERIA = [
-  { id: 1, label: "Twirling Variety & Difficulty", weight: 0.5, desc: "50%" },
-  { id: 2, label: "Precision & Timing", weight: 0.2, desc: "20%" },
-  { id: 3, label: "Choreography & Synchronization", weight: 0.3, desc: "30%" },
+  { id: 1, label: "Twirling Variety & Difficulty", max: 50, desc: "50 pts" },
+  { id: 2, label: "Precision & Timing", max: 20, desc: "20 pts" },
+  { id: 3, label: "Choreography & Synchronization", max: 30, desc: "30 pts" },
 ];
 
 const SOLO_CRITERIA = [
-  { id: 1, label: "Baton Difficulty & Variety, Speed & Control", weight: 0.5, desc: "50%" },
-  { id: 2, label: "Body Technique & Grace", weight: 0.2, desc: "20%" },
-  { id: 3, label: "Showmanship, Presentation & Routine Structure", weight: 0.3, desc: "30%" },
+  { id: 1, label: "Baton Difficulty & Variety, Speed & Control", max: 50, desc: "50 pts" },
+  { id: 2, label: "Body Technique & Grace", max: 20, desc: "20 pts" },
+  { id: 3, label: "Showmanship, Presentation & Routine Structure", max: 30, desc: "30 pts" },
 ];
 
 export default function ScoreEntry() {
@@ -56,20 +56,22 @@ export default function ScoreEntry() {
     const v2 = parseFloat(c2) || 0;
     const v3 = parseFloat(c3) || 0;
     const dCount = hasDeduction ? (parseInt(deductionCount, 10) || 0) : 0;
-    
-    const total = (v1 * 0.5) + (v2 * 0.2) + (v3 * 0.3) - (dCount * 10);
-    
+
+    // Raw scores are already on the weighted scale (max 50, 20, 30).
+    // Weighted score = raw score; total = sum of all three minus deductions.
+    const total = v1 + v2 + v3 - (dCount * 10);
+
     const valid = !!(
       judgeId &&
       schoolCode &&
-      c1 !== "" && v1 >= 0 && v1 <= 100 &&
-      c2 !== "" && v2 >= 0 && v2 <= 100 &&
-      c3 !== "" && v3 >= 0 && v3 <= 100 &&
+      c1 !== "" && v1 >= 0 && v1 <= criteria[0].max &&
+      c2 !== "" && v2 >= 0 && v2 <= criteria[1].max &&
+      c3 !== "" && v3 >= 0 && v3 <= criteria[2].max &&
       (!hasDeduction || (hasDeduction && dCount > 0))
     );
-    
+
     return { totalScore: Math.max(0, total), isValid: valid };
-  }, [c1, c2, c3, hasDeduction, deductionCount, judgeId, schoolCode]);
+  }, [c1, c2, c3, hasDeduction, deductionCount, judgeId, schoolCode, criteria]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +198,7 @@ export default function ScoreEntry() {
           {/* Scoring Section */}
           <div className="p-6 space-y-6 bg-gradient-to-b from-transparent to-black/20">
             <Label className="text-white/80 uppercase tracking-wider text-xs font-bold flex items-center gap-2">
-              4. Enter Scores <Badge variant="outline" className="text-[10px] py-0">0-100</Badge>
+              4. Enter Scores <Badge variant="outline" className="text-[10px] py-0">Max: 50 / 20 / 30</Badge>
             </Label>
             
             <div className="space-y-5">
@@ -208,13 +210,13 @@ export default function ScoreEntry() {
                 <div key={i} className="flex items-center gap-4 bg-black/40 p-4 rounded-lg border border-white/5">
                   <div className="flex-1">
                     <div className="font-semibold text-white/90">{item.crit.label}</div>
-                    <div className="text-primary text-sm font-bold mt-1">Weight: {item.crit.desc}</div>
+                    <div className="text-primary text-sm font-bold mt-1">Max Score: {item.crit.desc}</div>
                   </div>
                   <div className="w-32 relative">
                     <Input
                       type="number"
                       min="0"
-                      max="100"
+                      max={item.crit.max}
                       step="0.1"
                       value={item.state}
                       onChange={(e) => item.setter(e.target.value)}

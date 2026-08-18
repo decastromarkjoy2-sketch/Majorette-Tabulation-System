@@ -340,15 +340,15 @@ components:
         rawCriterion1:
           type: number
           minimum: 0
-          maximum: 100
+          maximum: 50
         rawCriterion2:
           type: number
           minimum: 0
-          maximum: 100
+          maximum: 20
         rawCriterion3:
           type: number
           minimum: 0
-          maximum: 100
+          maximum: 30
         deductionCount:
           type: number
           minimum: 0

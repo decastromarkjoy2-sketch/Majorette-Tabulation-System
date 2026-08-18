@@ -16,17 +16,17 @@ export interface ScoreInput {
   schoolCode: ScoreInputSchoolCode;
   /**
      * @minimum 0
-     * @maximum 100
+     * @maximum 50
      */
   rawCriterion1: number;
   /**
      * @minimum 0
-     * @maximum 100
+     * @maximum 20
      */
   rawCriterion2: number;
   /**
      * @minimum 0
-     * @maximum 100
+     * @maximum 30
      */
   rawCriterion3: number;
   /** @minimum 0 */
