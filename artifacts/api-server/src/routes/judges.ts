@@ -16,7 +16,7 @@ router.get("/judges", async (_req, res): Promise<void> => {
     .select()
     .from(judgesTable)
     .orderBy(judgesTable.createdAt);
-  res.json(ListJudgesResponse.parse(judges));
+  res.json(ListJudgesResponse.parse(judges.map((j) => ({ ...j, createdAt: j.createdAt.toISOString() }))));
 });
 
 router.post("/judges", async (req, res): Promise<void> => {
@@ -31,7 +31,7 @@ router.post("/judges", async (req, res): Promise<void> => {
     .values({ name: parsed.data.name })
     .returning();
 
-  res.status(201).json(CreateJudgeResponse.parse(judge));
+  res.status(201).json(CreateJudgeResponse.parse({ ...judge, createdAt: judge.createdAt.toISOString() }));
 });
 
 router.delete("/judges/:id", async (req, res): Promise<void> => {
