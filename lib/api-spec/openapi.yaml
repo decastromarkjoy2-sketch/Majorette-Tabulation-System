@@ -3,13 +3,20 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: TAGOBTOB Judging & Tabulation System API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: judges
+    description: Judge management
+  - name: scores
+    description: Score submission and retrieval
+  - name: tabulation
+    description: Tabulation and leaderboard
+
 paths:
   /healthz:
     get:
@@ -24,6 +31,189 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /judges:
+    get:
+      operationId: listJudges
+      tags: [judges]
+      summary: List all judges
+      responses:
+        "200":
+          description: List of judges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Judge"
+    post:
+      operationId: createJudge
+      tags: [judges]
+      summary: Create a new judge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JudgeInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Judge"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /judges/{id}:
+    delete:
+      operationId: deleteJudge
+      tags: [judges]
+      summary: Delete a judge
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scores:
+    get:
+      operationId: listScores
+      tags: [scores]
+      summary: List scores, optionally filtered
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [group, solo]
+        - name: judgeId
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: schoolCode
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of scores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Score"
+    post:
+      operationId: submitScore
+      tags: [scores]
+      summary: Submit a score for a school entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScoreInput"
+      responses:
+        "201":
+          description: Score submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Score"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /scores/{id}:
+    delete:
+      operationId: deleteScore
+      tags: [scores]
+      summary: Delete a score entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /tabulation/group:
+    get:
+      operationId: getGroupTabulation
+      tags: [tabulation]
+      summary: Get group category tabulation and leaderboard
+      responses:
+        "200":
+          description: Group tabulation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TabulationResult"
+
+  /tabulation/solo:
+    get:
+      operationId: getSoloTabulation
+      tags: [tabulation]
+      summary: Get solo (Mother Majorette) category tabulation and leaderboard
+      responses:
+        "200":
+          description: Solo tabulation results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TabulationResult"
+
+  /tabulation/summary:
+    get:
+      operationId: getTabulationSummary
+      tags: [tabulation]
+      summary: Get a quick summary of both categories for dashboard use
+      responses:
+        "200":
+          description: Summary of both categories
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TabulationSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +224,217 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    DeleteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
+          type: number
+      required:
+        - success
+        - id
+
+    Judge:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - createdAt
+
+    JudgeInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required:
+        - name
+
+    Score:
+      type: object
+      properties:
+        id:
+          type: number
+        judgeId:
+          type: number
+        judgeName:
+          type: string
+        category:
+          type: string
+          enum: [group, solo]
+        schoolCode:
+          type: string
+        schoolName:
+          type: string
+        entryNo:
+          type: string
+        rawCriterion1:
+          type: number
+        rawCriterion2:
+          type: number
+        rawCriterion3:
+          type: number
+        deductionCount:
+          type: number
+        weightedCriterion1:
+          type: number
+        weightedCriterion2:
+          type: number
+        weightedCriterion3:
+          type: number
+        deductionTotal:
+          type: number
+        totalScore:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - judgeId
+        - judgeName
+        - category
+        - schoolCode
+        - schoolName
+        - entryNo
+        - rawCriterion1
+        - rawCriterion2
+        - rawCriterion3
+        - deductionCount
+        - weightedCriterion1
+        - weightedCriterion2
+        - weightedCriterion3
+        - deductionTotal
+        - totalScore
+        - createdAt
+
+    ScoreInput:
+      type: object
+      properties:
+        judgeId:
+          type: number
+        judgeName:
+          type: string
+          minLength: 1
+        category:
+          type: string
+          enum: [group, solo]
+        schoolCode:
+          type: string
+          enum: ["01", "02", "03", "04", "05"]
+        rawCriterion1:
+          type: number
+          minimum: 0
+          maximum: 100
+        rawCriterion2:
+          type: number
+          minimum: 0
+          maximum: 100
+        rawCriterion3:
+          type: number
+          minimum: 0
+          maximum: 100
+        deductionCount:
+          type: number
+          minimum: 0
+      required:
+        - judgeId
+        - judgeName
+        - category
+        - schoolCode
+        - rawCriterion1
+        - rawCriterion2
+        - rawCriterion3
+        - deductionCount
+
+    TabulationEntry:
+      type: object
+      properties:
+        schoolCode:
+          type: string
+        schoolName:
+          type: string
+        entryNo:
+          type: string
+        judgeCount:
+          type: number
+        avgCriterion1:
+          type: number
+        avgCriterion2:
+          type: number
+        avgCriterion3:
+          type: number
+        avgDeduction:
+          type: number
+        avgTotalScore:
+          type: number
+        rank:
+          type: number
+        award:
+          type: ["string", "null"]
+        prizeAmount:
+          type: ["string", "null"]
+        judgeScores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Score"
+      required:
+        - schoolCode
+        - schoolName
+        - entryNo
+        - judgeCount
+        - avgCriterion1
+        - avgCriterion2
+        - avgCriterion3
+        - avgDeduction
+        - avgTotalScore
+        - rank
+        - award
+        - prizeAmount
+        - judgeScores
+
+    TabulationResult:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [group, solo]
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/TabulationEntry"
+        totalJudges:
+          type: number
+        totalScoresSubmitted:
+          type: number
+      required:
+        - category
+        - entries
+        - totalJudges
+        - totalScoresSubmitted
+
+    TabulationSummary:
+      type: object
+      properties:
+        group:
+          $ref: "#/components/schemas/TabulationResult"
+        solo:
+          $ref: "#/components/schemas/TabulationResult"
+      required:
+        - group
+        - solo

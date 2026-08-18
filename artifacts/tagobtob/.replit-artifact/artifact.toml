@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "TAGOBTOB Judging System"
+description = "A web-based judging and tabulation system for the TAGOBTOB: Paindigay nan Majorette ug Twirlers Competition. Supports Group and Solo (Mother Majorette) categories, allows judges to input scores per criterion with automatic weighted calculation and deduction handling, and displays a live leaderboard with rankings and prize awards."
+version = "1.0.0"
+id = "artifacts/tagobtob"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22941
+
+[services.development]
+run = "pnpm --filter @workspace/tagobtob run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/tagobtob", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/tagobtob/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22941"
+BASE_PATH = "/"
