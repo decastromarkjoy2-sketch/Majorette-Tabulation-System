@@ -32,7 +32,7 @@ export default function Admin() {
       onError: (error) => {
         toast({
           title: "Error",
-          description: error.error || "Failed to delete score.",
+          description: error.data?.error || "Failed to delete score.",
           variant: "destructive",
         });
       }

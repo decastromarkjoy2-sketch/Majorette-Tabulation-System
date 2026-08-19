@@ -12,5 +12,6 @@ export interface TabulationResult {
   category: TabulationResultCategory;
   entries: TabulationEntry[];
   totalJudges: number;
+  requiredJudgeCount: number;
   totalScoresSubmitted: number;
 }

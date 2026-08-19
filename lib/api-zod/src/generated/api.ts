@@ -92,7 +92,6 @@ export const ListScoresResponse = zod.array(ListScoresResponseItem)
 /**
  * @summary Submit a score for a school entry
  */
-
 export const submitScoreBodyRawCriterion1Min = 0;
 export const submitScoreBodyRawCriterion1Max = 50;
 
@@ -103,18 +102,18 @@ export const submitScoreBodyRawCriterion3Min = 0;
 export const submitScoreBodyRawCriterion3Max = 30;
 
 export const submitScoreBodyDeductionCountMin = 0;
+export const submitScoreBodyDeductionCountMultipleOf = 1;
 
 
 
 export const SubmitScoreBody = zod.object({
   "judgeId": zod.number(),
-  "judgeName": zod.string().min(1),
   "category": zod.enum(['group', 'solo']),
   "schoolCode": zod.enum(['01', '02', '03', '04', '05']),
   "rawCriterion1": zod.number().min(submitScoreBodyRawCriterion1Min).max(submitScoreBodyRawCriterion1Max),
   "rawCriterion2": zod.number().min(submitScoreBodyRawCriterion2Min).max(submitScoreBodyRawCriterion2Max),
   "rawCriterion3": zod.number().min(submitScoreBodyRawCriterion3Min).max(submitScoreBodyRawCriterion3Max),
-  "deductionCount": zod.number().min(submitScoreBodyDeductionCountMin)
+  "deductionCount": zod.number().min(submitScoreBodyDeductionCountMin).multipleOf(submitScoreBodyDeductionCountMultipleOf)
 })
 
 export const SubmitScoreResponse = zod.object({
@@ -161,12 +160,14 @@ export const GetGroupTabulationResponse = zod.object({
   "schoolName": zod.string(),
   "entryNo": zod.string(),
   "judgeCount": zod.number(),
+  "isComplete": zod.boolean(),
+  "missingJudgeCount": zod.number(),
   "avgCriterion1": zod.number(),
   "avgCriterion2": zod.number(),
   "avgCriterion3": zod.number(),
   "avgDeduction": zod.number(),
   "avgTotalScore": zod.number(),
-  "rank": zod.number(),
+  "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
   "judgeScores": zod.array(zod.object({
@@ -190,6 +191,7 @@ export const GetGroupTabulationResponse = zod.object({
 }))
 })),
   "totalJudges": zod.number(),
+  "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
 })
 
@@ -204,12 +206,14 @@ export const GetSoloTabulationResponse = zod.object({
   "schoolName": zod.string(),
   "entryNo": zod.string(),
   "judgeCount": zod.number(),
+  "isComplete": zod.boolean(),
+  "missingJudgeCount": zod.number(),
   "avgCriterion1": zod.number(),
   "avgCriterion2": zod.number(),
   "avgCriterion3": zod.number(),
   "avgDeduction": zod.number(),
   "avgTotalScore": zod.number(),
-  "rank": zod.number(),
+  "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
   "judgeScores": zod.array(zod.object({
@@ -233,6 +237,7 @@ export const GetSoloTabulationResponse = zod.object({
 }))
 })),
   "totalJudges": zod.number(),
+  "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
 })
 
@@ -248,12 +253,14 @@ export const GetTabulationSummaryResponse = zod.object({
   "schoolName": zod.string(),
   "entryNo": zod.string(),
   "judgeCount": zod.number(),
+  "isComplete": zod.boolean(),
+  "missingJudgeCount": zod.number(),
   "avgCriterion1": zod.number(),
   "avgCriterion2": zod.number(),
   "avgCriterion3": zod.number(),
   "avgDeduction": zod.number(),
   "avgTotalScore": zod.number(),
-  "rank": zod.number(),
+  "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
   "judgeScores": zod.array(zod.object({
@@ -277,6 +284,7 @@ export const GetTabulationSummaryResponse = zod.object({
 }))
 })),
   "totalJudges": zod.number(),
+  "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
 }),
   "solo": zod.object({
@@ -286,12 +294,14 @@ export const GetTabulationSummaryResponse = zod.object({
   "schoolName": zod.string(),
   "entryNo": zod.string(),
   "judgeCount": zod.number(),
+  "isComplete": zod.boolean(),
+  "missingJudgeCount": zod.number(),
   "avgCriterion1": zod.number(),
   "avgCriterion2": zod.number(),
   "avgCriterion3": zod.number(),
   "avgDeduction": zod.number(),
   "avgTotalScore": zod.number(),
-  "rank": zod.number(),
+  "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
   "judgeScores": zod.array(zod.object({
@@ -315,6 +325,7 @@ export const GetTabulationSummaryResponse = zod.object({
 }))
 })),
   "totalJudges": zod.number(),
+  "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
 })
 })

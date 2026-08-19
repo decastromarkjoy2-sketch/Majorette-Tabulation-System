@@ -1,4 +1,7 @@
-import { useGetTabulationSummary } from "@workspace/api-client-react";
+import {
+  getGetTabulationSummaryQueryKey,
+  useGetTabulationSummary,
+} from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Users, User, ArrowRight, FileCheck } from "lucide-react";
@@ -6,7 +9,10 @@ import { Link } from "wouter";
 
 export default function Home() {
   const { data: summary, isLoading, error } = useGetTabulationSummary({
-    query: { refetchInterval: 5000 }
+    query: {
+      queryKey: getGetTabulationSummaryQueryKey(),
+      refetchInterval: 5000,
+    }
   });
 
   if (isLoading) {
@@ -29,7 +35,7 @@ export default function Home() {
     );
   }
 
-  const renderRankBadge = (rank: number) => {
+  const renderRankBadge = (rank: number | null, missingJudgeCount: number) => {
     switch (rank) {
       case 1:
         return <Badge variant="gold" className="text-sm px-3 py-1 scale-110">1st Place</Badge>;
@@ -38,7 +44,11 @@ export default function Home() {
       case 3:
         return <Badge variant="bronze" className="text-sm px-3 py-1">3rd Place</Badge>;
       default:
-        return <Badge variant="outline">{rank}th Place</Badge>;
+        return (
+          <Badge variant="outline" className="whitespace-nowrap text-white/50">
+            Awaiting {missingJudgeCount}
+          </Badge>
+        );
     }
   };
 
@@ -49,6 +59,13 @@ export default function Home() {
     linkTo: string
   ) => {
     const Icon = icon;
+    const sortedEntries = [...result.entries].sort((a, b) => {
+      if (a.rank != null && b.rank != null) return a.rank - b.rank;
+      if (a.rank != null) return -1;
+      if (b.rank != null) return 1;
+      if (a.judgeCount !== b.judgeCount) return b.judgeCount - a.judgeCount;
+      return a.schoolCode.localeCompare(b.schoolCode);
+    });
     
     return (
       <Card className="flex flex-col h-full border-primary/10 bg-gradient-to-b from-card to-background relative overflow-hidden group">
@@ -70,29 +87,30 @@ export default function Home() {
             </Link>
           </div>
           <div className="flex gap-4 mt-4 text-sm text-white/50">
-            <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {result.totalJudges} Judges Active</span>
+            <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {result.totalJudges}/{result.requiredJudgeCount} Judges</span>
             <span className="flex items-center gap-1.5"><FileCheck className="h-4 w-4" /> {result.totalScoresSubmitted} Scores Submitted</span>
           </div>
         </CardHeader>
         
         <CardContent className="flex-1 p-0 relative z-10">
-          {result.entries.length === 0 ? (
+          {sortedEntries.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
               <p>No scores submitted yet.</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
-              {result.entries.sort((a, b) => a.rank - b.rank).map((entry, idx) => (
+              {sortedEntries.map((entry) => (
                 <div 
                   key={entry.schoolCode} 
-                  className={`p-5 flex items-center justify-between transition-colors hover:bg-white/5 ${idx === 0 ? 'bg-primary/5' : ''}`}
+                  className={`p-5 flex items-center justify-between transition-colors hover:bg-white/5 ${entry.rank === 1 ? 'bg-primary/5' : ''}`}
+                  data-testid={`row-dashboard-${result.category}-${entry.schoolCode}`}
                 >
                   <div className="flex items-center gap-5">
                     <div className="w-24 text-center">
-                      {renderRankBadge(entry.rank)}
+                      {renderRankBadge(entry.rank, entry.missingJudgeCount)}
                     </div>
                     <div>
-                      <h4 className={`font-bold font-serif ${idx === 0 ? 'text-2xl text-white' : 'text-lg text-white/90'}`}>
+                      <h4 className={`font-bold font-serif ${entry.rank === 1 ? 'text-2xl text-white' : 'text-lg text-white/90'}`}>
                         {entry.schoolName}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
@@ -109,10 +127,15 @@ export default function Home() {
                   </div>
                   
                   <div className="text-right">
-                    <div className={`font-bold font-mono tracking-tighter ${idx === 0 ? 'text-3xl text-primary' : 'text-2xl text-white/90'}`}>
-                      {entry.avgTotalScore.toFixed(2)}
+                    <div className={`font-bold font-mono tracking-tighter ${entry.rank === 1 ? 'text-3xl text-primary' : entry.isComplete ? 'text-2xl text-white/90' : 'text-2xl text-white/40'}`}>
+                      {entry.judgeCount > 0 ? entry.avgTotalScore.toFixed(2) : "—"}
                     </div>
-                    {entry.prizeAmount && (
+                    {!entry.isComplete && entry.judgeCount > 0 && (
+                      <div className="text-[10px] uppercase tracking-wider text-white/35">
+                        Provisional · {entry.judgeCount}/{result.requiredJudgeCount} judges
+                      </div>
+                    )}
+                    {entry.isComplete && entry.prizeAmount && (
                       <div className="text-xs text-green-400 font-medium mt-1">
                         ₱{entry.prizeAmount}
                       </div>

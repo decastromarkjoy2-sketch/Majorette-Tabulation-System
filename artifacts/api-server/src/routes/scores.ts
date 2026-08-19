@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and } from "drizzle-orm";
-import { db, scoresTable } from "@workspace/db";
+import { db, judgesTable, scoresTable } from "@workspace/db";
 import {
   SubmitScoreBody,
   ListScoresQueryParams,
@@ -11,6 +11,7 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+const REQUIRED_JUDGE_COUNT = 3;
 
 // School lookup
 const SCHOOLS: Record<string, { name: string; entryNo: string }> = {
@@ -21,8 +22,14 @@ const SCHOOLS: Record<string, { name: string; entryNo: string }> = {
   "05": { name: "BNHS", entryNo: "05" },
 };
 
-// Weight constants
-const WEIGHTS = { c1: 0.5, c2: 0.2, c3: 0.3 };
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: string }).code === "23505"
+  );
+}
 
 router.get("/scores", async (req, res): Promise<void> => {
   const parsed = ListScoresQueryParams.safeParse(req.query);
@@ -70,12 +77,49 @@ router.post("/scores", async (req, res): Promise<void> => {
     return;
   }
 
-  const { judgeId, judgeName, category, schoolCode, rawCriterion1, rawCriterion2, rawCriterion3, deductionCount } =
+  const { judgeId, category, schoolCode, rawCriterion1, rawCriterion2, rawCriterion3, deductionCount } =
     parsed.data;
 
   const school = SCHOOLS[schoolCode];
   if (!school) {
     res.status(400).json({ error: "Invalid school code" });
+    return;
+  }
+
+  const judges = await db
+    .select({ id: judgesTable.id, name: judgesTable.name })
+    .from(judgesTable)
+    .orderBy(judgesTable.createdAt);
+
+  if (judges.length !== REQUIRED_JUDGE_COUNT) {
+    res.status(409).json({
+      error: `Scoring requires exactly ${REQUIRED_JUDGE_COUNT} registered judges. The current roster has ${judges.length}.`,
+    });
+    return;
+  }
+
+  const judge = judges.find((registeredJudge) => registeredJudge.id === judgeId);
+  if (!judge) {
+    res.status(400).json({ error: "The selected judge is not registered." });
+    return;
+  }
+
+  const [existingScore] = await db
+    .select({ id: scoresTable.id })
+    .from(scoresTable)
+    .where(
+      and(
+        eq(scoresTable.judgeId, judgeId),
+        eq(scoresTable.category, category),
+        eq(scoresTable.schoolCode, schoolCode),
+      ),
+    )
+    .limit(1);
+
+  if (existingScore) {
+    res.status(409).json({
+      error: `${judge.name} has already submitted a ${category} score for ${school.name}.`,
+    });
     return;
   }
 
@@ -87,26 +131,37 @@ router.post("/scores", async (req, res): Promise<void> => {
   const deductionTotal = deductionCount * 10;
   const totalScore = weightedCriterion1 + weightedCriterion2 + weightedCriterion3 - deductionTotal;
 
-  const [score] = await db
-    .insert(scoresTable)
-    .values({
-      judgeId,
-      judgeName,
-      category,
-      schoolCode,
-      schoolName: school.name,
-      entryNo: school.entryNo,
-      rawCriterion1: String(rawCriterion1),
-      rawCriterion2: String(rawCriterion2),
-      rawCriterion3: String(rawCriterion3),
-      deductionCount,
-      weightedCriterion1: String(weightedCriterion1),
-      weightedCriterion2: String(weightedCriterion2),
-      weightedCriterion3: String(weightedCriterion3),
-      deductionTotal: String(deductionTotal),
-      totalScore: String(totalScore),
-    })
-    .returning();
+  let score: typeof scoresTable.$inferSelect;
+  try {
+    [score] = await db
+      .insert(scoresTable)
+      .values({
+        judgeId,
+        judgeName: judge.name,
+        category,
+        schoolCode,
+        schoolName: school.name,
+        entryNo: school.entryNo,
+        rawCriterion1: String(rawCriterion1),
+        rawCriterion2: String(rawCriterion2),
+        rawCriterion3: String(rawCriterion3),
+        deductionCount,
+        weightedCriterion1: String(weightedCriterion1),
+        weightedCriterion2: String(weightedCriterion2),
+        weightedCriterion3: String(weightedCriterion3),
+        deductionTotal: String(deductionTotal),
+        totalScore: String(totalScore),
+      })
+      .returning();
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      res.status(409).json({
+        error: `${judge.name} has already submitted a ${category} score for ${school.name}.`,
+      });
+      return;
+    }
+    throw error;
+  }
 
   const mapped = {
     ...score,

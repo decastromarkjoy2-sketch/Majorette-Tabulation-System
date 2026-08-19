@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { 
   useListJudges, 
   useCreateJudge, 
@@ -11,9 +11,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, UserPlus, Users } from "lucide-react";
+import { CheckCircle2, Trash2, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+
+const REQUIRED_JUDGE_COUNT = 3;
 
 export default function Judges() {
   const queryClient = useQueryClient();
@@ -23,10 +25,12 @@ export default function Judges() {
   const { data: judges, isLoading } = useListJudges();
   const createJudge = useCreateJudge();
   const deleteJudge = useDeleteJudge();
+  const judgeCount = judges?.length ?? 0;
+  const rosterIsFull = judgeCount >= REQUIRED_JUDGE_COUNT;
   
   const handleAddJudge = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newJudgeName.trim()) return;
+    if (!newJudgeName.trim() || rosterIsFull) return;
     
     createJudge.mutate({ data: { name: newJudgeName.trim() } }, {
       onSuccess: () => {
@@ -40,7 +44,7 @@ export default function Judges() {
       onError: (error) => {
         toast({
           title: "Error",
-          description: error.error || "Failed to add judge",
+          description: error.data?.error || "Failed to add judge",
           variant: "destructive",
         });
       }
@@ -48,7 +52,7 @@ export default function Judges() {
   };
 
   const handleDelete = (id: number) => {
-    if (!confirm("Are you sure you want to remove this judge? All their submitted scores will remain, but they won't be able to submit new ones.")) return;
+    if (!confirm("Remove this judge? Their submitted scores will also be deleted, and affected entries will become incomplete until a replacement judge submits scores.")) return;
     
     deleteJudge.mutate({ id }, {
       onSuccess: () => {
@@ -61,7 +65,7 @@ export default function Judges() {
       onError: (error) => {
         toast({
           title: "Error",
-          description: error.error || "Failed to remove judge",
+          description: error.data?.error || "Failed to remove judge",
           variant: "destructive",
         });
       }
@@ -76,15 +80,49 @@ export default function Judges() {
             <Users className="h-8 w-8 text-primary" />
             Judge Management
           </h1>
-          <p className="text-muted-foreground mt-1">Register and manage competition judges.</p>
+          <p className="text-muted-foreground mt-1">Register exactly three distinct competition judges.</p>
         </div>
+        <div
+          className={`rounded-lg border px-4 py-3 text-right ${
+            rosterIsFull
+              ? "border-green-500/30 bg-green-500/10"
+              : "border-primary/30 bg-primary/10"
+          }`}
+          data-testid="status-judge-roster"
+        >
+          <div className="text-2xl font-mono font-black text-white">
+            {judgeCount}/{REQUIRED_JUDGE_COUNT}
+          </div>
+          <div className="text-xs font-bold uppercase tracking-wider text-white/60">
+            {rosterIsFull ? "Roster Ready" : "Judges Registered"}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
+          rosterIsFull
+            ? "border-green-500/20 bg-green-500/5 text-green-300"
+            : "border-amber-500/20 bg-amber-500/5 text-amber-200"
+        }`}
+      >
+        <CheckCircle2 className="h-5 w-5 shrink-0" />
+        <p className="text-sm">
+          {rosterIsFull
+            ? "The three-judge panel is complete. Score submission is enabled."
+            : `${REQUIRED_JUDGE_COUNT - judgeCount} judge slot${REQUIRED_JUDGE_COUNT - judgeCount === 1 ? "" : "s"} remaining. Scoring stays locked until all three judges are registered.`}
+        </p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
         <Card className="md:col-span-1 h-fit border-primary/20 bg-black/40">
           <CardHeader>
             <CardTitle className="text-xl">Add New Judge</CardTitle>
-            <CardDescription>Enter the full name of the judge.</CardDescription>
+            <CardDescription>
+              {rosterIsFull
+                ? "All three judge slots are filled."
+                : "Enter the full name of a distinct judge."}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAddJudge} className="space-y-4">
@@ -96,15 +134,17 @@ export default function Judges() {
                   onChange={(e) => setNewJudgeName(e.target.value)} 
                   placeholder="e.g. Dr. Maria Santos"
                   className="bg-black/50 border-white/10 text-white"
-                  disabled={createJudge.isPending}
+                  disabled={createJudge.isPending || rosterIsFull}
+                  data-testid="input-judge-name"
                 />
               </div>
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={!newJudgeName.trim() || createJudge.isPending}
+                disabled={!newJudgeName.trim() || createJudge.isPending || rosterIsFull}
+                data-testid="button-add-judge"
               >
-                {createJudge.isPending ? "Adding..." : (
+                {rosterIsFull ? "Roster Full" : createJudge.isPending ? "Adding..." : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" /> Add Judge
                   </>
@@ -119,7 +159,7 @@ export default function Judges() {
             <CardTitle className="text-xl flex items-center justify-between">
               Registered Judges
               <span className="text-sm font-normal text-muted-foreground font-sans">
-                {judges?.length || 0} Total
+                {judgeCount}/{REQUIRED_JUDGE_COUNT} Registered
               </span>
             </CardTitle>
           </CardHeader>
@@ -155,6 +195,7 @@ export default function Judges() {
                           className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => handleDelete(judge.id)}
                           disabled={deleteJudge.isPending}
+                          data-testid={`button-delete-judge-${judge.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

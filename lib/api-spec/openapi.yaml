@@ -69,6 +69,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Three-judge roster is already full or the judge already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /judges/{id}:
     delete:
@@ -145,6 +151,12 @@ paths:
                 $ref: "#/components/schemas/Score"
         "400":
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Three-judge roster is incomplete or this judge already scored the entry
           content:
             application/json:
               schema:
@@ -328,9 +340,6 @@ components:
       properties:
         judgeId:
           type: number
-        judgeName:
-          type: string
-          minLength: 1
         category:
           type: string
           enum: [group, solo]
@@ -352,9 +361,9 @@ components:
         deductionCount:
           type: number
           minimum: 0
+          multipleOf: 1
       required:
         - judgeId
-        - judgeName
         - category
         - schoolCode
         - rawCriterion1
@@ -373,6 +382,10 @@ components:
           type: string
         judgeCount:
           type: number
+        isComplete:
+          type: boolean
+        missingJudgeCount:
+          type: number
         avgCriterion1:
           type: number
         avgCriterion2:
@@ -384,7 +397,7 @@ components:
         avgTotalScore:
           type: number
         rank:
-          type: number
+          type: ["number", "null"]
         award:
           type: ["string", "null"]
         prizeAmount:
@@ -398,6 +411,8 @@ components:
         - schoolName
         - entryNo
         - judgeCount
+        - isComplete
+        - missingJudgeCount
         - avgCriterion1
         - avgCriterion2
         - avgCriterion3
@@ -420,12 +435,15 @@ components:
             $ref: "#/components/schemas/TabulationEntry"
         totalJudges:
           type: number
+        requiredJudgeCount:
+          type: number
         totalScoresSubmitted:
           type: number
       required:
         - category
         - entries
         - totalJudges
+        - requiredJudgeCount
         - totalScoresSubmitted
 
     TabulationSummary:

@@ -1,0 +1,1 @@
+- [OpenAPI whole-number validation](openapi-whole-number-validation.md) — represent integer-like API fields with `number` plus `multipleOf: 1` in this workspace.

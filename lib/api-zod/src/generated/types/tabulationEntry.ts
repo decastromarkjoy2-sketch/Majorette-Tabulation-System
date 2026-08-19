@@ -12,12 +12,15 @@ export interface TabulationEntry {
   schoolName: string;
   entryNo: string;
   judgeCount: number;
+  isComplete: boolean;
+  missingJudgeCount: number;
   avgCriterion1: number;
   avgCriterion2: number;
   avgCriterion3: number;
   avgDeduction: number;
   avgTotalScore: number;
-  rank: number;
+  /** @nullable */
+  rank: number | null;
   /** @nullable */
   award: string | null;
   /** @nullable */

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, scoresTable } from "@workspace/db";
+import { db, judgesTable, scoresTable } from "@workspace/db";
 import {
   GetGroupTabulationResponse,
   GetSoloTabulationResponse,
@@ -8,6 +8,7 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+const REQUIRED_JUDGE_COUNT = 3;
 
 // Group awards
 const GROUP_AWARDS: Record<number, { award: string; prizeAmount: string }> = {
@@ -36,32 +37,46 @@ const SCHOOLS = [
 ];
 
 async function buildTabulation(category: "group" | "solo") {
-  const scores = await db
-    .select()
-    .from(scoresTable)
-    .where(eq(scoresTable.category, category))
-    .orderBy(scoresTable.createdAt);
+  const [scores, judges] = await Promise.all([
+    db
+      .select()
+      .from(scoresTable)
+      .where(eq(scoresTable.category, category))
+      .orderBy(scoresTable.createdAt),
+    db
+      .select({ id: judgesTable.id })
+      .from(judgesTable)
+      .orderBy(judgesTable.createdAt),
+  ]);
 
   const awards = category === "group" ? GROUP_AWARDS : SOLO_AWARDS;
+  const registeredJudgeIds = new Set(judges.map((judge) => judge.id));
 
   // Group scores by school
   const bySchool: Record<string, typeof scores> = {};
   for (const s of scores) {
+    if (!registeredJudgeIds.has(s.judgeId)) continue;
     if (!bySchool[s.schoolCode]) bySchool[s.schoolCode] = [];
     bySchool[s.schoolCode].push(s);
   }
 
-  const uniqueJudges = new Set(scores.map((s) => s.judgeId));
-  const totalJudges = uniqueJudges.size;
+  const totalJudges = judges.length;
 
   // Build per-school entries
   const entries = SCHOOLS.map((school) => {
     const schoolScores = bySchool[school.schoolCode] ?? [];
-    const count = schoolScores.length;
+    const scoresByJudge = new Map<number, (typeof schoolScores)[number]>();
+    for (const score of schoolScores) {
+      scoresByJudge.set(score.judgeId, score);
+    }
+    const distinctJudgeScores = [...scoresByJudge.values()];
+    const count = distinctJudgeScores.length;
+    const isComplete =
+      totalJudges === REQUIRED_JUDGE_COUNT && count === REQUIRED_JUDGE_COUNT;
 
-    const avg = (field: keyof typeof schoolScores[0]) => {
+    const avg = (field: keyof (typeof distinctJudgeScores)[number]) => {
       if (count === 0) return 0;
-      return schoolScores.reduce((sum, s) => sum + Number(s[field]), 0) / count;
+      return distinctJudgeScores.reduce((sum, s) => sum + Number(s[field]), 0) / count;
     };
 
     return {
@@ -69,15 +84,17 @@ async function buildTabulation(category: "group" | "solo") {
       schoolName: school.schoolName,
       entryNo: school.entryNo,
       judgeCount: count,
+      isComplete,
+      missingJudgeCount: Math.max(0, REQUIRED_JUDGE_COUNT - count),
       avgCriterion1: avg("weightedCriterion1"),
       avgCriterion2: avg("weightedCriterion2"),
       avgCriterion3: avg("weightedCriterion3"),
       avgDeduction: avg("deductionTotal"),
       avgTotalScore: avg("totalScore"),
-      rank: 0, // will be set below
+      rank: null as number | null,
       award: null as string | null,
       prizeAmount: null as string | null,
-      judgeScores: schoolScores.map((s) => ({
+      judgeScores: distinctJudgeScores.map((s) => ({
         ...s,
         rawCriterion1: Number(s.rawCriterion1),
         rawCriterion2: Number(s.rawCriterion2),
@@ -92,19 +109,32 @@ async function buildTabulation(category: "group" | "solo") {
     };
   });
 
-  // Sort by avgTotalScore descending, assign ranks
-  entries.sort((a, b) => b.avgTotalScore - a.avgTotalScore);
-  entries.forEach((entry, i) => {
-    entry.rank = i + 1;
-    const awardEntry = awards[entry.rank];
+  // Complete entries are ranked by their three-judge average. Incomplete entries
+  // remain visible below them, but cannot receive an official rank or award.
+  entries.sort((a, b) => {
+    if (a.isComplete !== b.isComplete) return a.isComplete ? -1 : 1;
+    if (a.isComplete && b.isComplete && a.avgTotalScore !== b.avgTotalScore) {
+      return b.avgTotalScore - a.avgTotalScore;
+    }
+    if (a.judgeCount !== b.judgeCount) return b.judgeCount - a.judgeCount;
+    return a.schoolCode.localeCompare(b.schoolCode);
+  });
+
+  let nextRank = 1;
+  entries.forEach((entry) => {
+    if (!entry.isComplete) return;
+    entry.rank = nextRank;
+    const awardEntry = awards[nextRank];
     entry.award = awardEntry?.award ?? null;
     entry.prizeAmount = awardEntry?.prizeAmount ?? null;
+    nextRank += 1;
   });
 
   return {
     category,
     entries,
     totalJudges,
+    requiredJudgeCount: REQUIRED_JUDGE_COUNT,
     totalScoresSubmitted: scores.length,
   };
 }

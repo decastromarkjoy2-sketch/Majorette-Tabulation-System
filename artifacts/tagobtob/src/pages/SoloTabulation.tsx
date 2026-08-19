@@ -1,12 +1,18 @@
-import { useGetSoloTabulation } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  getGetSoloTabulationQueryKey,
+  useGetSoloTabulation,
+} from "@workspace/api-client-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { User, FileCheck } from "lucide-react";
+import { FileCheck, Trophy, User } from "lucide-react";
 
 export default function SoloTabulation() {
   const { data: tabulation, isLoading, error } = useGetSoloTabulation({
-    query: { refetchInterval: 5000 }
+    query: {
+      queryKey: getGetSoloTabulationQueryKey(),
+      refetchInterval: 5000,
+    }
   });
 
   if (isLoading) {
@@ -28,18 +34,29 @@ export default function SoloTabulation() {
     );
   }
 
-  const renderRankBadge = (rank: number) => {
+  const renderRankBadge = (rank: number | null) => {
     switch (rank) {
       case 1: return <Badge variant="gold" className="px-3 py-1">Champion</Badge>;
       case 2: return <Badge variant="silver">1st Runner Up</Badge>;
       case 3: return <Badge variant="bronze">2nd Runner Up</Badge>;
       case 4: return <Badge variant="outline">4th Place</Badge>;
       case 5: return <Badge variant="outline">5th Place</Badge>;
-      default: return <Badge variant="outline">{rank}th Rank</Badge>;
+      default: return null;
     }
   };
 
-  const sortedEntries = [...tabulation.entries].sort((a, b) => a.rank - b.rank);
+  const sortedEntries = [...tabulation.entries].sort((a, b) => {
+    if (a.rank != null && b.rank != null) return a.rank - b.rank;
+    if (a.rank != null) return -1;
+    if (b.rank != null) return 1;
+    if (a.judgeCount !== b.judgeCount) return b.judgeCount - a.judgeCount;
+    return a.schoolCode.localeCompare(b.schoolCode);
+  });
+  const completedEntries = sortedEntries.filter((entry) => entry.isComplete);
+  const topThree = completedEntries.filter(
+    (entry) => entry.rank != null && entry.rank <= 3,
+  );
+  const allEntriesComplete = completedEntries.length === sortedEntries.length;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
@@ -49,13 +66,67 @@ export default function SoloTabulation() {
             <User className="h-8 w-8 text-secondary" />
             Solo (Mother Majorette) Tabulation
           </h1>
-          <p className="text-muted-foreground mt-1">Official Leaderboard and Breakdown</p>
+          <p className="text-muted-foreground mt-1">Three-judge average, deductions, and automatic awards</p>
         </div>
         <div className="flex gap-4 text-sm text-white/60 bg-black/40 px-4 py-2 rounded-lg border border-white/5">
-          <span className="flex items-center gap-2"><User className="h-4 w-4" /> {tabulation.totalJudges} Judges Active</span>
+          <span className="flex items-center gap-2"><User className="h-4 w-4" /> {tabulation.totalJudges}/{tabulation.requiredJudgeCount} Judges Registered</span>
           <span className="flex items-center gap-2"><FileCheck className="h-4 w-4" /> {tabulation.totalScoresSubmitted} Scores Logged</span>
         </div>
       </div>
+
+      <div
+        className={`rounded-lg border px-4 py-3 text-sm ${
+          allEntriesComplete
+            ? "border-green-500/20 bg-green-500/5 text-green-300"
+            : "border-secondary/20 bg-secondary/5 text-white/70"
+        }`}
+        data-testid="status-solo-completion"
+      >
+        <span className="font-bold text-white">
+          {completedEntries.length}/{sortedEntries.length} entries fully judged.
+        </span>{" "}
+        {allEntriesComplete
+          ? "All placements and awards are final."
+          : "Only entries with all three judge scores receive an official rank or award."}
+      </div>
+
+      {topThree.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-secondary">
+            <Trophy className="h-4 w-4" />
+            {allEntriesComplete ? "Official Awardees" : "Current Automatic Placements"}
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {topThree.map((entry) => (
+              <Card
+                key={entry.schoolCode}
+                className="border-secondary/20 bg-secondary/5"
+                data-testid={`card-solo-award-${entry.rank}`}
+              >
+                <CardContent className="flex items-center justify-between p-4">
+                  <div>
+                    <div className="mb-2">{renderRankBadge(entry.rank)}</div>
+                    <div className="font-serif text-xl font-bold text-white">
+                      {entry.schoolName}
+                    </div>
+                    <div className="text-xs text-white/45">Entry {entry.entryNo}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-2xl font-black text-secondary">
+                      {entry.avgTotalScore.toFixed(2)}
+                    </div>
+                    {entry.prizeAmount && (
+                      <div className="text-xs font-bold text-green-400">
+                        ₱{entry.prizeAmount}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Card className="border-secondary/20 bg-black/40 shadow-2xl overflow-hidden">
         <CardContent className="p-0">
@@ -65,29 +136,23 @@ export default function SoloTabulation() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="text-secondary font-bold w-[80px]">Rank</TableHead>
                   <TableHead className="text-secondary font-bold w-[250px]">School (Entry No)</TableHead>
-                  <TableHead className="text-center font-bold">Judges</TableHead>
-                  <TableHead className="text-right font-bold">Avg Crit 1 (50%)</TableHead>
-                  <TableHead className="text-right font-bold">Avg Crit 2 (20%)</TableHead>
-                  <TableHead className="text-right font-bold">Avg Crit 3 (30%)</TableHead>
+                  <TableHead className="text-center font-bold">Judged</TableHead>
+                  <TableHead className="text-right font-bold">Avg Crit 1 (50 pts)</TableHead>
+                  <TableHead className="text-right font-bold">Avg Crit 2 (20 pts)</TableHead>
+                  <TableHead className="text-right font-bold">Avg Crit 3 (30 pts)</TableHead>
                   <TableHead className="text-right font-bold text-destructive">Avg Ded (-10)</TableHead>
                   <TableHead className="text-right text-secondary font-bold text-base">Final Score</TableHead>
                   <TableHead className="text-right font-bold">Award / Prize</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedEntries.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
-                      No scores submitted yet for Solo Category.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  sortedEntries.map((entry, idx) => (
+                  {sortedEntries.map((entry) => (
                     <TableRow 
                       key={entry.schoolCode} 
-                      className={`border-white/5 group transition-colors hover:bg-white/5 ${idx === 0 ? 'bg-secondary/5' : ''}`}
+                      className={`border-white/5 group transition-colors hover:bg-white/5 ${entry.rank === 1 ? 'bg-secondary/5' : ''}`}
+                      data-testid={`row-solo-entry-${entry.schoolCode}`}
                     >
-                      <TableCell className="font-bold text-xl">{entry.rank}</TableCell>
+                      <TableCell className="font-bold text-xl">{entry.rank ?? "—"}</TableCell>
                       <TableCell>
                         <div className="font-serif font-bold text-lg text-white group-hover:text-secondary transition-colors">
                           {entry.schoolName}
@@ -95,26 +160,41 @@ export default function SoloTabulation() {
                         <div className="text-xs text-white/50 font-mono mt-0.5">Code: {entry.schoolCode} • Entry: {entry.entryNo}</div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className="bg-black/50">{entry.judgeCount}</Badge>
+                        <Badge
+                          variant="outline"
+                          className={entry.isComplete ? "border-green-500/30 bg-green-500/10 text-green-300" : "bg-black/50"}
+                        >
+                          {entry.judgeCount}/{tabulation.requiredJudgeCount}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-white/80">{entry.avgCriterion1.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-mono text-white/80">{entry.avgCriterion2.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-mono text-white/80">{entry.avgCriterion3.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-mono text-destructive">{entry.avgDeduction.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-mono font-black text-2xl text-secondary tracking-tighter">
-                        {entry.avgTotalScore.toFixed(2)}
+                      <TableCell className="text-right font-mono text-white/80">{entry.judgeCount > 0 ? entry.avgCriterion1.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-white/80">{entry.judgeCount > 0 ? entry.avgCriterion2.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-white/80">{entry.judgeCount > 0 ? entry.avgCriterion3.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-destructive">{entry.judgeCount > 0 ? entry.avgDeduction.toFixed(2) : "—"}</TableCell>
+                      <TableCell className={`text-right font-mono font-black text-2xl tracking-tighter ${entry.isComplete ? "text-secondary" : "text-white/40"}`}>
+                        {entry.judgeCount > 0 ? entry.avgTotalScore.toFixed(2) : "—"}
+                        {!entry.isComplete && entry.judgeCount > 0 && (
+                          <span className="block text-[10px] font-sans uppercase tracking-wider text-white/35">
+                            Provisional
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-1">
-                          {renderRankBadge(entry.rank)}
-                          {entry.prizeAmount && (
+                          {entry.isComplete ? (
+                            renderRankBadge(entry.rank)
+                          ) : (
+                            <Badge variant="outline" className="whitespace-nowrap text-white/50">
+                              Awaiting {entry.missingJudgeCount} judge{entry.missingJudgeCount === 1 ? "" : "s"}
+                            </Badge>
+                          )}
+                          {entry.isComplete && entry.prizeAmount && (
                             <span className="text-xs font-bold text-green-400">₱{entry.prizeAmount}</span>
                           )}
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  ))}
               </TableBody>
             </Table>
           </div>

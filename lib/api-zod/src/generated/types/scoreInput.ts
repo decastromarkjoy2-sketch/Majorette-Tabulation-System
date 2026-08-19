@@ -10,8 +10,6 @@ import type { ScoreInputSchoolCode } from './scoreInputSchoolCode';
 
 export interface ScoreInput {
   judgeId: number;
-  /** @minLength 1 */
-  judgeName: string;
   category: ScoreInputCategory;
   schoolCode: ScoreInputSchoolCode;
   /**

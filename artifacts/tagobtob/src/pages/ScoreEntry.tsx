@@ -1,17 +1,23 @@
 import { useState, useMemo } from "react";
 import { 
   useListJudges, 
+  useListScores,
   useSubmitScore,
+  getListScoresQueryKey,
+  getGetGroupTabulationQueryKey,
+  getGetSoloTabulationQueryKey,
+  getGetTabulationSummaryQueryKey,
   ScoreInputSchoolCode,
   ScoreInputCategory
 } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, ClipboardCheck, AlertCircle } from "lucide-react";
+import { Calculator, CheckCircle2, ClipboardCheck, LockKeyhole } from "lucide-react";
 
 const SCHOOLS = [
   { code: ScoreInputSchoolCode.NUMBER_01, name: "GNHS" },
@@ -33,7 +39,10 @@ const SOLO_CRITERIA = [
   { id: 3, label: "Showmanship, Presentation & Routine Structure", max: 30, desc: "30 pts" },
 ];
 
+const REQUIRED_JUDGE_COUNT = 3;
+
 export default function ScoreEntry() {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: judges, isLoading: loadingJudges } = useListJudges();
   const submitScore = useSubmitScore();
@@ -50,6 +59,28 @@ export default function ScoreEntry() {
   const [deductionCount, setDeductionCount] = useState<string>("1");
 
   const criteria = category === "group" ? GROUP_CRITERIA : SOLO_CRITERIA;
+  const rosterReady = judges?.length === REQUIRED_JUDGE_COUNT;
+  const selectedJudgeId = judgeId ? Number(judgeId) : undefined;
+  const scoreQueryParams = useMemo(
+    () => ({ category, judgeId: selectedJudgeId }),
+    [category, selectedJudgeId],
+  );
+  const { data: existingScores, isLoading: loadingExistingScores } = useListScores(
+    scoreQueryParams,
+    {
+      query: {
+        enabled: selectedJudgeId != null,
+        queryKey: getListScoresQueryKey(scoreQueryParams),
+      },
+    },
+  );
+  const scoredSchoolCodes = useMemo(
+    () => new Set(existingScores?.map((score) => score.schoolCode) ?? []),
+    [existingScores],
+  );
+  const selectedSchoolAlreadyScored = schoolCode
+    ? scoredSchoolCodes.has(schoolCode)
+    : false;
 
   const { totalScore, isValid } = useMemo(() => {
     const v1 = parseFloat(c1) || 0;
@@ -64,6 +95,8 @@ export default function ScoreEntry() {
     const valid = !!(
       judgeId &&
       schoolCode &&
+      rosterReady &&
+      !selectedSchoolAlreadyScored &&
       c1 !== "" && v1 >= 0 && v1 <= criteria[0].max &&
       c2 !== "" && v2 >= 0 && v2 <= criteria[1].max &&
       c3 !== "" && v3 >= 0 && v3 <= criteria[2].max &&
@@ -71,7 +104,18 @@ export default function ScoreEntry() {
     );
 
     return { totalScore: Math.max(0, total), isValid: valid };
-  }, [c1, c2, c3, hasDeduction, deductionCount, judgeId, schoolCode, criteria]);
+  }, [
+    c1,
+    c2,
+    c3,
+    hasDeduction,
+    deductionCount,
+    judgeId,
+    schoolCode,
+    criteria,
+    rosterReady,
+    selectedSchoolAlreadyScored,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +127,6 @@ export default function ScoreEntry() {
     submitScore.mutate({
       data: {
         judgeId: selectedJudge.id,
-        judgeName: selectedJudge.name,
         category: category as any,
         schoolCode: schoolCode as any,
         rawCriterion1: parseFloat(c1),
@@ -93,6 +136,14 @@ export default function ScoreEntry() {
       }
     }, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListScoresQueryKey() });
+        queryClient.invalidateQueries({
+          queryKey:
+            category === "group"
+              ? getGetGroupTabulationQueryKey()
+              : getGetSoloTabulationQueryKey(),
+        });
+        queryClient.invalidateQueries({ queryKey: getGetTabulationSummaryQueryKey() });
         toast({
           title: "Score Submitted Successfully",
           description: `Score recorded for ${SCHOOLS.find(s => s.code === schoolCode)?.name} in ${category} category.`,
@@ -108,7 +159,7 @@ export default function ScoreEntry() {
       onError: (error) => {
         toast({
           title: "Submission Failed",
-          description: error.error || "Failed to submit score",
+          description: error.data?.error || "Failed to submit score",
           variant: "destructive",
         });
       }
@@ -125,6 +176,31 @@ export default function ScoreEntry() {
         <p className="text-muted-foreground mt-1">Official judge submission portal. All scores are final upon submission.</p>
       </div>
 
+      <div
+        className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
+          rosterReady
+            ? "border-green-500/20 bg-green-500/5 text-green-300"
+            : "border-amber-500/20 bg-amber-500/5 text-amber-200"
+        }`}
+        data-testid="status-score-roster"
+      >
+        {rosterReady ? (
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
+        ) : (
+          <LockKeyhole className="h-5 w-5 shrink-0" />
+        )}
+        <div>
+          <p className="text-sm font-semibold">
+            {rosterReady
+              ? "Three-judge panel ready"
+              : `Scoring locked: ${judges?.length ?? 0}/${REQUIRED_JUDGE_COUNT} judges registered`}
+          </p>
+          <p className="text-xs text-white/50">
+            Each judge may submit one score per school in each category.
+          </p>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <Card className="border-primary/20 bg-card overflow-hidden">
           {/* Identity Section */}
@@ -136,7 +212,8 @@ export default function ScoreEntry() {
                   className="flex h-12 w-full rounded-md border border-white/10 bg-black/60 px-3 py-2 text-base text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 transition-colors"
                   value={judgeId}
                   onChange={(e) => setJudgeId(e.target.value)}
-                  disabled={loadingJudges}
+                  disabled={loadingJudges || !rosterReady}
+                  data-testid="select-judge"
                 >
                   <option value="" disabled>-- Choose your name --</option>
                   {judges?.map(j => (
@@ -150,7 +227,11 @@ export default function ScoreEntry() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setCategory("group")}
+                    onClick={() => {
+                      setCategory("group");
+                      setSchoolCode("");
+                    }}
+                    data-testid="button-category-group"
                     className={`flex-1 h-12 rounded-md font-semibold transition-all ${
                       category === "group" 
                         ? "bg-primary text-primary-foreground shadow-[0_0_15px_-3px_hsl(var(--primary)_/_0.4)]" 
@@ -161,7 +242,11 @@ export default function ScoreEntry() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setCategory("solo")}
+                    onClick={() => {
+                      setCategory("solo");
+                      setSchoolCode("");
+                    }}
+                    data-testid="button-category-solo"
                     className={`flex-1 h-12 rounded-md font-semibold transition-all ${
                       category === "solo" 
                         ? "bg-primary text-primary-foreground shadow-[0_0_15px_-3px_hsl(var(--primary)_/_0.4)]" 
@@ -177,21 +262,43 @@ export default function ScoreEntry() {
             <div className="space-y-3">
               <Label className="text-white/80 uppercase tracking-wider text-xs font-bold">3. Select School / Entry</Label>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {SCHOOLS.map(school => (
-                  <button
-                    key={school.code}
-                    type="button"
-                    onClick={() => setSchoolCode(school.code)}
-                    className={`h-16 rounded-lg font-bold text-lg transition-all border ${
-                      schoolCode === school.code
-                        ? "bg-white text-black border-white shadow-lg scale-105"
-                        : "bg-black/40 text-white/70 border-white/10 hover:bg-white/10 hover:border-white/20"
-                    }`}
-                  >
-                    {school.name}
-                  </button>
-                ))}
+                {SCHOOLS.map((school) => {
+                  const alreadyScored = scoredSchoolCodes.has(school.code);
+                  return (
+                    <button
+                      key={school.code}
+                      type="button"
+                      onClick={() => setSchoolCode(school.code)}
+                      disabled={
+                        !judgeId ||
+                        loadingExistingScores ||
+                        alreadyScored ||
+                        !rosterReady
+                      }
+                      data-testid={`button-school-${school.code}`}
+                      className={`h-16 rounded-lg font-bold text-lg transition-all border ${
+                        schoolCode === school.code
+                          ? "bg-white text-black border-white shadow-lg scale-105"
+                          : alreadyScored
+                            ? "bg-green-500/10 text-green-300/70 border-green-500/20 cursor-not-allowed"
+                            : "bg-black/40 text-white/70 border-white/10 hover:bg-white/10 hover:border-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                      }`}
+                    >
+                      <span className="block">{school.name}</span>
+                      {alreadyScored && (
+                        <span className="block text-[10px] uppercase tracking-wider">
+                          Submitted
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+              {judgeId && (
+                <p className="text-xs text-white/45" data-testid="text-scoring-progress">
+                  {scoredSchoolCodes.size}/5 entries scored by the selected judge in the {category} category.
+                </p>
+              )}
             </div>
           </div>
 
@@ -222,6 +329,7 @@ export default function ScoreEntry() {
                       onChange={(e) => item.setter(e.target.value)}
                       placeholder="0.0"
                       className="text-right text-2xl font-mono h-14 bg-black border-white/20 text-white font-bold"
+                      data-testid={`input-score-criterion-${i + 1}`}
                     />
                   </div>
                 </div>
@@ -255,6 +363,7 @@ export default function ScoreEntry() {
                       value={deductionCount}
                       onChange={(e) => setDeductionCount(e.target.value)}
                       className="w-20 text-center font-mono h-10 border-destructive/50 bg-black/50"
+                      data-testid="input-deduction-count"
                     />
                   </div>
                 )}
@@ -270,7 +379,9 @@ export default function ScoreEntry() {
               <div>
                 <div className="text-sm text-white/60 uppercase tracking-widest font-bold">Live Total Score</div>
                 <div className="text-4xl font-mono font-black text-primary tracking-tighter">
+                  <span data-testid="text-live-total">
                   {totalScore.toFixed(2)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -281,6 +392,7 @@ export default function ScoreEntry() {
               size="xl"
               className="w-full md:w-auto"
               disabled={!isValid || submitScore.isPending}
+              data-testid="button-submit-score"
             >
               {submitScore.isPending ? "Submitting..." : "Submit Final Score"}
             </Button>
