@@ -25,5 +25,12 @@ export interface TabulationEntry {
   award: string | null;
   /** @nullable */
   prizeAmount: string | null;
+  /** Whether the official tie-break policy was used to order this entry */
+  tieBreakApplied: boolean;
+  /**
+     * The first tie-break criterion that separated entries with equal final averages
+     * @nullable
+     */
+  tieBreakReason: string | null;
   judgeScores: Score[];
 }

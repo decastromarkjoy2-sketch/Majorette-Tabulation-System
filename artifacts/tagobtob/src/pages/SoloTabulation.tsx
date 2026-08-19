@@ -5,7 +5,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileCheck, Trophy, User } from "lucide-react";
+import { CheckCircle2, FileCheck, Trophy, User } from "lucide-react";
 
 export default function SoloTabulation() {
   const { data: tabulation, isLoading, error } = useGetSoloTabulation({
@@ -90,6 +90,27 @@ export default function SoloTabulation() {
           : "Only entries with all three judge scores receive an official rank or award."}
       </div>
 
+      <Card className="border-secondary/20 bg-secondary/5" data-testid="card-solo-tie-break-policy">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-300" />
+            <div className="space-y-2 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-bold text-white">{tabulation.tieBreakPolicy.title}</h2>
+                <Badge className="border-green-500/30 bg-green-500/10 text-green-300">
+                  {tabulation.tieBreakPolicy.status}
+                </Badge>
+              </div>
+              <p className="text-white/65">{tabulation.tieBreakPolicy.description}</p>
+              <ol className="list-decimal space-y-1 pl-5 text-white/55">
+                {tabulation.tieBreakPolicy.steps.map((step) => <li key={step}>{step}</li>)}
+              </ol>
+              <p className="text-xs text-white/45">Approved by {tabulation.tieBreakPolicy.approvedBy}.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {topThree.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-secondary">
@@ -105,7 +126,14 @@ export default function SoloTabulation() {
               >
                 <CardContent className="flex items-center justify-between p-4">
                   <div>
-                    <div className="mb-2">{renderRankBadge(entry.rank)}</div>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      {renderRankBadge(entry.rank)}
+                      {entry.tieBreakApplied && (
+                        <Badge variant="outline" title={entry.tieBreakReason ?? undefined}>
+                          Tie-break applied
+                        </Badge>
+                      )}
+                    </div>
                     <div className="font-serif text-xl font-bold text-white">
                       {entry.schoolName}
                     </div>
@@ -181,8 +209,19 @@ export default function SoloTabulation() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col items-end gap-1">
-                          {entry.isComplete ? (
-                            renderRankBadge(entry.rank)
+                           {entry.isComplete ? (
+                             <div className="flex flex-col items-end gap-1">
+                               {renderRankBadge(entry.rank)}
+                               {entry.tieBreakApplied && (
+                                 <Badge
+                                   variant="outline"
+                                   title={entry.tieBreakReason ?? undefined}
+                                   className="whitespace-nowrap text-amber-300"
+                                 >
+                                   Tie-break applied
+                                 </Badge>
+                               )}
+                             </div>
                           ) : (
                             <Badge variant="outline" className="whitespace-nowrap text-white/50">
                               Awaiting {entry.missingJudgeCount} judge{entry.missingJudgeCount === 1 ? "" : "s"}

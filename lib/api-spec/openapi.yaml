@@ -402,6 +402,12 @@ components:
           type: ["string", "null"]
         prizeAmount:
           type: ["string", "null"]
+        tieBreakApplied:
+          type: boolean
+          description: Whether the official tie-break policy was used to order this entry
+        tieBreakReason:
+          type: ["string", "null"]
+          description: The first tie-break criterion that separated entries with equal final averages
         judgeScores:
           type: array
           items:
@@ -421,7 +427,32 @@ components:
         - rank
         - award
         - prizeAmount
+        - tieBreakApplied
+        - tieBreakReason
         - judgeScores
+
+    TieBreakPolicy:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved]
+        title:
+          type: string
+        description:
+          type: string
+        steps:
+          type: array
+          items:
+            type: string
+        approvedBy:
+          type: string
+      required:
+        - status
+        - title
+        - description
+        - steps
+        - approvedBy
 
     TabulationResult:
       type: object
@@ -433,6 +464,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TabulationEntry"
+        tieBreakPolicy:
+          $ref: "#/components/schemas/TieBreakPolicy"
         totalJudges:
           type: number
         requiredJudgeCount:
@@ -442,6 +475,7 @@ components:
       required:
         - category
         - entries
+        - tieBreakPolicy
         - totalJudges
         - requiredJudgeCount
         - totalScoresSubmitted

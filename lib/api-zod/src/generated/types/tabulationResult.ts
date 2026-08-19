@@ -7,10 +7,12 @@
  */
 import type { TabulationEntry } from './tabulationEntry';
 import type { TabulationResultCategory } from './tabulationResultCategory';
+import type { TieBreakPolicy } from './tieBreakPolicy';
 
 export interface TabulationResult {
   category: TabulationResultCategory;
   entries: TabulationEntry[];
+  tieBreakPolicy: TieBreakPolicy;
   totalJudges: number;
   requiredJudgeCount: number;
   totalScoresSubmitted: number;

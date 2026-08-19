@@ -4,7 +4,7 @@ import {
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Users, User, ArrowRight, FileCheck } from "lucide-react";
+import { CheckCircle2, Trophy, Users, User, ArrowRight, FileCheck } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Home() {
@@ -90,6 +90,12 @@ export default function Home() {
             <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {result.totalJudges}/{result.requiredJudgeCount} Judges</span>
             <span className="flex items-center gap-1.5"><FileCheck className="h-4 w-4" /> {result.totalScoresSubmitted} Scores Submitted</span>
           </div>
+          <div className="flex items-center gap-1.5 mt-3 text-xs text-green-300/80">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {result.tieBreakPolicy.status === "approved"
+              ? "Organizer-approved tie-break policy active"
+              : "Tie-break policy pending approval"}
+          </div>
         </CardHeader>
         
         <CardContent className="flex-1 p-0 relative z-10">
@@ -120,6 +126,14 @@ export default function Home() {
                         {entry.award && (
                           <span className="text-xs text-primary/80 font-medium">
                             {entry.award}
+                          </span>
+                        )}
+                        {entry.tieBreakApplied && (
+                          <span
+                            className="text-xs text-amber-300/80"
+                            title={entry.tieBreakReason ?? undefined}
+                          >
+                            Tie-break applied
                           </span>
                         )}
                       </div>

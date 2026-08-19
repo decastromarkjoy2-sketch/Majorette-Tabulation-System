@@ -9,6 +9,22 @@ import {
 
 const router: IRouter = Router();
 const REQUIRED_JUDGE_COUNT = 3;
+const TIE_EPSILON = 1e-9;
+
+const TIE_BREAK_POLICY = {
+  status: "approved" as const,
+  title: "Official tie-break policy",
+  description:
+    "When complete entries have equal three-judge final averages, the ranking is decided by the following criteria in order.",
+  steps: [
+    "Higher average Criterion 1 (50 points)",
+    "Higher average Criterion 2 (20 points)",
+    "Higher average Criterion 3 (30 points)",
+    "Lower average deductions",
+    "School code in ascending order as the final deterministic fallback",
+  ],
+  approvedBy: "Competition organizers",
+} as const;
 
 // Group awards
 const GROUP_AWARDS: Record<number, { award: string; prizeAmount: string }> = {
@@ -94,6 +110,8 @@ async function buildTabulation(category: "group" | "solo") {
       rank: null as number | null,
       award: null as string | null,
       prizeAmount: null as string | null,
+      tieBreakApplied: false,
+      tieBreakReason: null as string | null,
       judgeScores: distinctJudgeScores.map((s) => ({
         ...s,
         rawCriterion1: Number(s.rawCriterion1),
@@ -111,14 +129,99 @@ async function buildTabulation(category: "group" | "solo") {
 
   // Complete entries are ranked by their three-judge average. Incomplete entries
   // remain visible below them, but cannot receive an official rank or award.
+  const compareTieBreakCriteria = (a: (typeof entries)[number], b: (typeof entries)[number]) => {
+    const higherIsBetter = [
+      ["avgCriterion1", "Higher average Criterion 1 (50 points)"],
+      ["avgCriterion2", "Higher average Criterion 2 (20 points)"],
+      ["avgCriterion3", "Higher average Criterion 3 (30 points)"],
+    ] as const;
+
+    for (const [field] of higherIsBetter) {
+      const difference = b[field] - a[field];
+      if (Math.abs(difference) > TIE_EPSILON) return difference;
+    }
+
+    const deductionDifference = a.avgDeduction - b.avgDeduction;
+    if (Math.abs(deductionDifference) > TIE_EPSILON) return deductionDifference;
+
+    return a.schoolCode.localeCompare(b.schoolCode);
+  };
+
   entries.sort((a, b) => {
     if (a.isComplete !== b.isComplete) return a.isComplete ? -1 : 1;
-    if (a.isComplete && b.isComplete && a.avgTotalScore !== b.avgTotalScore) {
+    if (
+      a.isComplete &&
+      b.isComplete &&
+      Math.abs(a.avgTotalScore - b.avgTotalScore) > TIE_EPSILON
+    ) {
       return b.avgTotalScore - a.avgTotalScore;
+    }
+    if (
+      a.isComplete &&
+      b.isComplete &&
+      Math.abs(a.avgTotalScore - b.avgTotalScore) <= TIE_EPSILON
+    ) {
+      return compareTieBreakCriteria(a, b);
     }
     if (a.judgeCount !== b.judgeCount) return b.judgeCount - a.judgeCount;
     return a.schoolCode.localeCompare(b.schoolCode);
   });
+
+  const getTieBreakReason = (group: typeof entries) => {
+    if (
+      group.some(
+        (entry) => Math.abs(entry.avgCriterion1 - group[0].avgCriterion1) > TIE_EPSILON,
+      )
+    ) {
+      return "Higher average Criterion 1 (50 points)";
+    }
+    if (
+      group.some(
+        (entry) => Math.abs(entry.avgCriterion2 - group[0].avgCriterion2) > TIE_EPSILON,
+      )
+    ) {
+      return "Higher average Criterion 2 (20 points)";
+    }
+    if (
+      group.some(
+        (entry) => Math.abs(entry.avgCriterion3 - group[0].avgCriterion3) > TIE_EPSILON,
+      )
+    ) {
+      return "Higher average Criterion 3 (30 points)";
+    }
+    if (
+      group.some(
+        (entry) => Math.abs(entry.avgDeduction - group[0].avgDeduction) > TIE_EPSILON,
+      )
+    ) {
+      return "Lower average deductions";
+    }
+    return "School code in ascending order";
+  };
+
+  for (let start = 0; start < entries.length; ) {
+    if (!entries[start].isComplete) break;
+
+    let end = start + 1;
+    while (
+      end < entries.length &&
+      entries[end].isComplete &&
+      Math.abs(entries[end].avgTotalScore - entries[start].avgTotalScore) <= TIE_EPSILON
+    ) {
+      end += 1;
+    }
+
+    if (end - start > 1) {
+      const tiedEntries = entries.slice(start, end);
+      const reason = getTieBreakReason(tiedEntries);
+      for (const entry of tiedEntries) {
+        entry.tieBreakApplied = true;
+        entry.tieBreakReason = reason;
+      }
+    }
+
+    start = end;
+  }
 
   let nextRank = 1;
   entries.forEach((entry) => {
@@ -133,6 +236,7 @@ async function buildTabulation(category: "group" | "solo") {
   return {
     category,
     entries,
+    tieBreakPolicy: TIE_BREAK_POLICY,
     totalJudges,
     requiredJudgeCount: REQUIRED_JUDGE_COUNT,
     totalScoresSubmitted: scores.length,

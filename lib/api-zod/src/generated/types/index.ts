@@ -22,3 +22,5 @@ export * from './tabulationEntry';
 export * from './tabulationResult';
 export * from './tabulationResultCategory';
 export * from './tabulationSummary';
+export * from './tieBreakPolicy';
+export * from './tieBreakPolicyStatus';

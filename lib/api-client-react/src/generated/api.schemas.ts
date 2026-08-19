@@ -117,7 +117,29 @@ export interface TabulationEntry {
   award: string | null;
   /** @nullable */
   prizeAmount: string | null;
+  /** Whether the official tie-break policy was used to order this entry */
+  tieBreakApplied: boolean;
+  /**
+     * The first tie-break criterion that separated entries with equal final averages
+     * @nullable
+     */
+  tieBreakReason: string | null;
   judgeScores: Score[];
+}
+
+export type TieBreakPolicyStatus = typeof TieBreakPolicyStatus[keyof typeof TieBreakPolicyStatus];
+
+
+export const TieBreakPolicyStatus = {
+  approved: 'approved',
+} as const;
+
+export interface TieBreakPolicy {
+  status: TieBreakPolicyStatus;
+  title: string;
+  description: string;
+  steps: string[];
+  approvedBy: string;
 }
 
 export type TabulationResultCategory = typeof TabulationResultCategory[keyof typeof TabulationResultCategory];
@@ -131,6 +153,7 @@ export const TabulationResultCategory = {
 export interface TabulationResult {
   category: TabulationResultCategory;
   entries: TabulationEntry[];
+  tieBreakPolicy: TieBreakPolicy;
   totalJudges: number;
   requiredJudgeCount: number;
   totalScoresSubmitted: number;

@@ -170,6 +170,8 @@ export const GetGroupTabulationResponse = zod.object({
   "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
+  "tieBreakApplied": zod.boolean().describe('Whether the official tie-break policy was used to order this entry'),
+  "tieBreakReason": zod.string().nullable().describe('The first tie-break criterion that separated entries with equal final averages'),
   "judgeScores": zod.array(zod.object({
   "id": zod.number(),
   "judgeId": zod.number(),
@@ -190,6 +192,13 @@ export const GetGroupTabulationResponse = zod.object({
   "createdAt": zod.string()
 }))
 })),
+  "tieBreakPolicy": zod.object({
+  "status": zod.enum(['approved']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "steps": zod.array(zod.string()),
+  "approvedBy": zod.string()
+}),
   "totalJudges": zod.number(),
   "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
@@ -216,6 +225,8 @@ export const GetSoloTabulationResponse = zod.object({
   "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
+  "tieBreakApplied": zod.boolean().describe('Whether the official tie-break policy was used to order this entry'),
+  "tieBreakReason": zod.string().nullable().describe('The first tie-break criterion that separated entries with equal final averages'),
   "judgeScores": zod.array(zod.object({
   "id": zod.number(),
   "judgeId": zod.number(),
@@ -236,6 +247,13 @@ export const GetSoloTabulationResponse = zod.object({
   "createdAt": zod.string()
 }))
 })),
+  "tieBreakPolicy": zod.object({
+  "status": zod.enum(['approved']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "steps": zod.array(zod.string()),
+  "approvedBy": zod.string()
+}),
   "totalJudges": zod.number(),
   "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
@@ -263,6 +281,8 @@ export const GetTabulationSummaryResponse = zod.object({
   "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
+  "tieBreakApplied": zod.boolean().describe('Whether the official tie-break policy was used to order this entry'),
+  "tieBreakReason": zod.string().nullable().describe('The first tie-break criterion that separated entries with equal final averages'),
   "judgeScores": zod.array(zod.object({
   "id": zod.number(),
   "judgeId": zod.number(),
@@ -283,6 +303,13 @@ export const GetTabulationSummaryResponse = zod.object({
   "createdAt": zod.string()
 }))
 })),
+  "tieBreakPolicy": zod.object({
+  "status": zod.enum(['approved']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "steps": zod.array(zod.string()),
+  "approvedBy": zod.string()
+}),
   "totalJudges": zod.number(),
   "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
@@ -304,6 +331,8 @@ export const GetTabulationSummaryResponse = zod.object({
   "rank": zod.number().nullable(),
   "award": zod.string().nullable(),
   "prizeAmount": zod.string().nullable(),
+  "tieBreakApplied": zod.boolean().describe('Whether the official tie-break policy was used to order this entry'),
+  "tieBreakReason": zod.string().nullable().describe('The first tie-break criterion that separated entries with equal final averages'),
   "judgeScores": zod.array(zod.object({
   "id": zod.number(),
   "judgeId": zod.number(),
@@ -324,6 +353,13 @@ export const GetTabulationSummaryResponse = zod.object({
   "createdAt": zod.string()
 }))
 })),
+  "tieBreakPolicy": zod.object({
+  "status": zod.enum(['approved']),
+  "title": zod.string(),
+  "description": zod.string(),
+  "steps": zod.array(zod.string()),
+  "approvedBy": zod.string()
+}),
   "totalJudges": zod.number(),
   "requiredJudgeCount": zod.number(),
   "totalScoresSubmitted": zod.number()
