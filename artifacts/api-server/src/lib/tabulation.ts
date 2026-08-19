@@ -27,10 +27,10 @@ const GROUP_AWARDS: Record<number, { award: string; prizeAmount: string }> = {
 
 const SOLO_AWARDS: Record<number, { award: string; prizeAmount: string }> = {
   1: { award: "Solo Champion", prizeAmount: "5,000" },
-  2: { award: "1st Runner-up", prizeAmount: "" },
-  3: { award: "2nd Runner-up", prizeAmount: "" },
-  4: { award: "4th Place", prizeAmount: "" },
-  5: { award: "5th Place", prizeAmount: "" },
+  2: { award: "1st Runner-up", prizeAmount: "4,000" },
+  3: { award: "2nd Runner-up", prizeAmount: "3,000" },
+  4: { award: "4th Place", prizeAmount: "2,000" },
+  5: { award: "5th Place", prizeAmount: "2,000" },
 };
 
 const SCHOOLS = [
