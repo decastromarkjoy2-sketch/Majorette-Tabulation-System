@@ -10,9 +10,13 @@ import {
   DeleteScoreResponse,
 } from "@workspace/api-zod";
 import { getSession, requireOrganizer } from "../lib/auth";
+import {
+  calculateScore,
+  isDuplicateScoreSubmission,
+  REQUIRED_JUDGE_COUNT,
+} from "../lib/scoring";
 
 const router: IRouter = Router();
-const REQUIRED_JUDGE_COUNT = 3;
 
 // School lookup
 const SCHOOLS: Record<string, { name: string; entryNo: string }> = {
@@ -122,7 +126,11 @@ router.post("/scores", async (req, res): Promise<void> => {
   }
 
   const [existingScore] = await db
-    .select({ id: scoresTable.id })
+    .select({
+      judgeId: scoresTable.judgeId,
+      category: scoresTable.category,
+      schoolCode: scoresTable.schoolCode,
+    })
     .from(scoresTable)
     .where(
       and(
@@ -133,20 +141,23 @@ router.post("/scores", async (req, res): Promise<void> => {
     )
     .limit(1);
 
-  if (existingScore) {
+  if (
+    existingScore &&
+    isDuplicateScoreSubmission([existingScore], { judgeId, category, schoolCode })
+  ) {
     res.status(409).json({
       error: `${judge.name} has already submitted a ${category} score for ${school.name}.`,
     });
     return;
   }
 
-  // Raw scores are already on the weighted scale (0-50, 0-20, 0-30),
-  // so the weighted score IS the raw score — just sum them.
-  const weightedCriterion1 = rawCriterion1;
-  const weightedCriterion2 = rawCriterion2;
-  const weightedCriterion3 = rawCriterion3;
-  const deductionTotal = deductionCount * 10;
-  const totalScore = weightedCriterion1 + weightedCriterion2 + weightedCriterion3 - deductionTotal;
+  const {
+    weightedCriterion1,
+    weightedCriterion2,
+    weightedCriterion3,
+    deductionTotal,
+    totalScore,
+  } = calculateScore({ rawCriterion1, rawCriterion2, rawCriterion3, deductionCount });
 
   let score: typeof scoresTable.$inferSelect;
   try {

@@ -11,9 +11,9 @@ import {
   DeleteJudgeResponse,
 } from "@workspace/api-zod";
 import { createAccessCode, hashAccessCode, requireOrganizer } from "../lib/auth";
+import { judgeRegistrationStatus, REQUIRED_JUDGE_COUNT } from "../lib/scoring";
 
 const router: IRouter = Router();
-const REQUIRED_JUDGE_COUNT = 3;
 const JUDGE_ROSTER_LOCK_ID = 843_073;
 
 function isUniqueViolation(error: unknown): boolean {
@@ -66,15 +66,11 @@ router.post("/judges", async (req, res): Promise<void> => {
         .from(judgesTable)
         .orderBy(judgesTable.createdAt);
 
-      const normalizedName = judgeName.toLocaleLowerCase();
-      const duplicateJudge = judges.some(
-        (judge) => judge.name.trim().toLocaleLowerCase() === normalizedName,
+      const registrationStatus = judgeRegistrationStatus(
+        judges.map((judge) => judge.name),
+        judgeName,
       );
-
-      if (duplicateJudge) return { status: "duplicate" as const };
-      if (judges.length >= REQUIRED_JUDGE_COUNT) {
-        return { status: "full" as const };
-      }
+      if (registrationStatus !== "created") return { status: registrationStatus };
 
       const accessCode = createAccessCode();
       const [judge] = await tx
