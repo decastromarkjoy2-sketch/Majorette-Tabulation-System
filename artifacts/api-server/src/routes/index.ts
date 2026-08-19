@@ -1,16 +1,21 @@
 import { Router, type IRouter } from "express";
+import { db } from "@workspace/db";
 import healthRouter from "./health";
-import authRouter from "./auth";
-import judgesRouter from "./judges";
-import scoresRouter from "./scores";
+import { createAuthRouter } from "./auth";
+import { createJudgesRouter } from "./judges";
+import { createScoresRouter } from "./scores";
 import tabulationRouter from "./tabulation";
 
-const router: IRouter = Router();
+export function createApiRouter(database: typeof db = db): IRouter {
+  const router: IRouter = Router();
 
-router.use(healthRouter);
-router.use(authRouter);
-router.use(judgesRouter);
-router.use(scoresRouter);
-router.use(tabulationRouter);
+  router.use(healthRouter);
+  router.use(createAuthRouter(database));
+  router.use(createJudgesRouter(database));
+  router.use(createScoresRouter(database));
+  router.use(tabulationRouter);
 
-export default router;
+  return router;
+}
+
+export default createApiRouter();
