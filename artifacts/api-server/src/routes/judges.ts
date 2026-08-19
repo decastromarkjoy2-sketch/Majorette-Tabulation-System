@@ -5,9 +5,12 @@ import {
   CreateJudgeBody,
   ListJudgesResponse,
   CreateJudgeResponse,
+  ResetJudgeAccessCodeParams,
+  ResetJudgeAccessCodeResponse,
   DeleteJudgeParams,
   DeleteJudgeResponse,
 } from "@workspace/api-zod";
+import { createAccessCode, hashAccessCode, requireOrganizer } from "../lib/auth";
 
 const router: IRouter = Router();
 const REQUIRED_JUDGE_COUNT = 3;
@@ -27,10 +30,16 @@ router.get("/judges", async (_req, res): Promise<void> => {
     .select()
     .from(judgesTable)
     .orderBy(judgesTable.createdAt);
-  res.json(ListJudgesResponse.parse(judges.map((j) => ({ ...j, createdAt: j.createdAt.toISOString() }))));
+  res.json(ListJudgesResponse.parse(judges.map((j) => ({
+    id: j.id,
+    name: j.name,
+    hasAccessCode: Boolean(j.accessCodeHash),
+    createdAt: j.createdAt.toISOString(),
+  }))));
 });
 
 router.post("/judges", async (req, res): Promise<void> => {
+  if (!requireOrganizer(req, res)) return;
   const parsed = CreateJudgeBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -44,7 +53,7 @@ router.post("/judges", async (req, res): Promise<void> => {
   }
 
   let result:
-    | { status: "created"; judge: typeof judgesTable.$inferSelect }
+      | { status: "created"; judge: typeof judgesTable.$inferSelect; accessCode: string }
     | { status: "duplicate" }
     | { status: "full" };
 
@@ -67,12 +76,13 @@ router.post("/judges", async (req, res): Promise<void> => {
         return { status: "full" as const };
       }
 
+      const accessCode = createAccessCode();
       const [judge] = await tx
         .insert(judgesTable)
-        .values({ name: judgeName })
+        .values({ name: judgeName, accessCodeHash: hashAccessCode(accessCode) })
         .returning();
 
-      return { status: "created" as const, judge };
+      return { status: "created" as const, judge, accessCode };
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -96,11 +106,46 @@ router.post("/judges", async (req, res): Promise<void> => {
 
   res.status(201).json(CreateJudgeResponse.parse({
     ...result.judge,
+    hasAccessCode: true,
+    accessCode: result.accessCode,
     createdAt: result.judge.createdAt.toISOString(),
   }));
 });
 
+router.post("/judges/:id/access-code", async (req, res): Promise<void> => {
+  if (!requireOrganizer(req, res)) return;
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const params = ResetJudgeAccessCodeParams.safeParse({ id: parseInt(raw, 10) });
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const accessCode = createAccessCode();
+  const [judge] = await db
+    .update(judgesTable)
+    .set({
+      accessCodeHash: hashAccessCode(accessCode),
+      accessCodeVersion: sql`${judgesTable.accessCodeVersion} + 1`,
+    })
+    .where(eq(judgesTable.id, params.data.id))
+    .returning();
+
+  if (!judge) {
+    res.status(404).json({ error: "Judge not found" });
+    return;
+  }
+
+  res.json(ResetJudgeAccessCodeResponse.parse({
+    ...judge,
+    hasAccessCode: true,
+    accessCode,
+    createdAt: judge.createdAt.toISOString(),
+  }));
+});
+
 router.delete("/judges/:id", async (req, res): Promise<void> => {
+  if (!requireOrganizer(req, res)) return;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteJudgeParams.safeParse({ id: parseInt(raw, 10) });
   if (!params.success) {

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Settings, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { OrganizerGate } from "@/components/auth/OrganizerGate";
 
 export default function Admin() {
   const queryClient = useQueryClient();
@@ -49,6 +50,7 @@ export default function Admin() {
         <p className="text-muted-foreground mt-1">Audit log of all submitted scores.</p>
       </div>
 
+      <OrganizerGate title="Unlock score administration">
       <Card className="border-white/10 bg-black/40">
         <CardHeader>
           <CardTitle className="text-xl flex items-center justify-between">
@@ -125,6 +127,7 @@ export default function Admin() {
           )}
         </CardContent>
       </Card>
+      </OrganizerGate>
     </div>
   );
 }

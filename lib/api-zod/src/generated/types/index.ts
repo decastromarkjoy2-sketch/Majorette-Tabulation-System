@@ -6,11 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accessCodeInput';
 export * from './deleteResult';
 export * from './errorResponse';
 export * from './healthStatus';
 export * from './judge';
+export * from './judgeAccessCodeInput';
 export * from './judgeInput';
+export * from './judgeRegistration';
 export * from './listScoresCategory';
 export * from './listScoresParams';
 export * from './score';
@@ -18,6 +21,8 @@ export * from './scoreCategory';
 export * from './scoreInput';
 export * from './scoreInputCategory';
 export * from './scoreInputSchoolCode';
+export * from './session';
+export * from './sessionRole';
 export * from './tabulationEntry';
 export * from './tabulationResult';
 export * from './tabulationResultCategory';

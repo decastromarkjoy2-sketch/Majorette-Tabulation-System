@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { integer, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -8,6 +8,8 @@ export const judgesTable = pgTable(
   {
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
+    accessCodeHash: text("access_code_hash"),
+    accessCodeVersion: integer("access_code_version").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

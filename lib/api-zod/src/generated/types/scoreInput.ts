@@ -9,7 +9,6 @@ import type { ScoreInputCategory } from './scoreInputCategory';
 import type { ScoreInputSchoolCode } from './scoreInputSchoolCode';
 
 export interface ScoreInput {
-  judgeId: number;
   category: ScoreInputCategory;
   schoolCode: ScoreInputSchoolCode;
   /**

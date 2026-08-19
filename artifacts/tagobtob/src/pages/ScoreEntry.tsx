@@ -7,6 +7,10 @@ import {
   getGetGroupTabulationQueryKey,
   getGetSoloTabulationQueryKey,
   getGetTabulationSummaryQueryKey,
+  getGetSessionQueryKey,
+  useCreateJudgeSession,
+  useDeleteSession,
+  useGetSession,
   ScoreInputSchoolCode,
   ScoreInputCategory
 } from "@workspace/api-client-react";
@@ -17,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, CheckCircle2, ClipboardCheck, LockKeyhole } from "lucide-react";
+import { Calculator, CheckCircle2, ClipboardCheck, KeyRound, LockKeyhole, LogOut } from "lucide-react";
 
 const SCHOOLS = [
   { code: ScoreInputSchoolCode.NUMBER_01, name: "GNHS" },
@@ -45,9 +49,14 @@ export default function ScoreEntry() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: judges, isLoading: loadingJudges } = useListJudges();
+  const { data: session, isLoading: loadingSession } = useGetSession();
+  const createJudgeSession = useCreateJudgeSession();
+  const deleteSession = useDeleteSession();
   const submitScore = useSubmitScore();
 
   const [judgeId, setJudgeId] = useState<string>("");
+  const [accessCode, setAccessCode] = useState("");
+  const [authError, setAuthError] = useState("");
   const [category, setCategory] = useState<"group" | "solo">("group");
   const [schoolCode, setSchoolCode] = useState<string>("");
   
@@ -60,7 +69,9 @@ export default function ScoreEntry() {
 
   const criteria = category === "group" ? GROUP_CRITERIA : SOLO_CRITERIA;
   const rosterReady = judges?.length === REQUIRED_JUDGE_COUNT;
-  const selectedJudgeId = judgeId ? Number(judgeId) : undefined;
+  const selectedJudgeId =
+    session?.role === "judge" && session.judgeId != null ? session.judgeId : undefined;
+  const selectedJudge = judges?.find((judge) => judge.id === selectedJudgeId);
   const scoreQueryParams = useMemo(
     () => ({ category, judgeId: selectedJudgeId }),
     [category, selectedJudgeId],
@@ -93,7 +104,7 @@ export default function ScoreEntry() {
     const total = v1 + v2 + v3 - (dCount * 10);
 
     const valid = !!(
-      judgeId &&
+      selectedJudgeId != null &&
       schoolCode &&
       rosterReady &&
       !selectedSchoolAlreadyScored &&
@@ -110,23 +121,49 @@ export default function ScoreEntry() {
     c3,
     hasDeduction,
     deductionCount,
-    judgeId,
+    selectedJudgeId,
     schoolCode,
     criteria,
     rosterReady,
     selectedSchoolAlreadyScored,
   ]);
 
+  const handleJudgeSignIn = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!judgeId || accessCode.length < 8) return;
+    setAuthError("");
+    createJudgeSession.mutate(
+      { data: { judgeId: Number(judgeId), accessCode } },
+      {
+        onSuccess: (nextSession) => {
+          setAccessCode("");
+          queryClient.setQueryData(getGetSessionQueryKey(), nextSession);
+        },
+        onError: (error) => {
+          setAuthError(error.data?.error || "Judge sign-in failed.");
+        },
+      },
+    );
+  };
+
+  const handleJudgeSignOut = () => {
+    deleteSession.mutate(undefined, {
+      onSuccess: (nextSession) => {
+        queryClient.setQueryData(getGetSessionQueryKey(), nextSession);
+        setJudgeId("");
+        setSchoolCode("");
+      },
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isValid) return;
     
-    const selectedJudge = judges?.find(j => j.id.toString() === judgeId);
     if (!selectedJudge) return;
 
     submitScore.mutate({
       data: {
-        judgeId: selectedJudge.id,
         category: category as any,
         schoolCode: schoolCode as any,
         rawCriterion1: parseFloat(c1),
@@ -201,27 +238,107 @@ export default function ScoreEntry() {
         </div>
       </div>
 
+      {session?.role !== "judge" ? (
+        <Card className="border-primary/20 bg-black/40">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              Judge sign-in
+            </CardTitle>
+            <CardDescription>
+              Select your own name and enter the private access code given to you by the organizer.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleJudgeSignIn} className="space-y-4">
+              <input
+                type="text"
+                name="username"
+                autoComplete="username"
+                value={judgeId}
+                readOnly
+                className="sr-only"
+              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="judge-identity">Judge name</Label>
+                  <select
+                    id="judge-identity"
+                    className="flex h-11 w-full rounded-md border border-white/10 bg-black/60 px-3 py-2 text-white"
+                    value={judgeId}
+                    onChange={(event) => setJudgeId(event.target.value)}
+                    disabled={loadingJudges || !rosterReady || createJudgeSession.isPending}
+                    data-testid="select-judge"
+                  >
+                    <option value="" disabled>-- Choose your name --</option>
+                    {judges?.map((judge) => (
+                      <option key={judge.id} value={judge.id} disabled={!judge.hasAccessCode}>
+                        {judge.name}{judge.hasAccessCode ? "" : " (access code not set)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="judge-access-code">Judge access code</Label>
+                  <Input
+                    id="judge-access-code"
+                    type="password"
+                    autoComplete="current-password"
+                    value={accessCode}
+                    onChange={(event) => setAccessCode(event.target.value)}
+                    disabled={createJudgeSession.isPending}
+                    data-testid="input-judge-access-code"
+                  />
+                </div>
+              </div>
+              {authError && (
+                <p className="text-sm text-destructive" role="alert" data-testid="text-judge-auth-error">
+                  {authError}
+                </p>
+              )}
+              <Button
+                type="submit"
+                disabled={
+                  loadingSession ||
+                  !rosterReady ||
+                  !judgeId ||
+                  accessCode.length < 8 ||
+                  createJudgeSession.isPending
+                }
+                data-testid="button-judge-sign-in"
+              >
+                {createJudgeSession.isPending ? "Verifying..." : "Sign in to score"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="flex items-center justify-between rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
+          <div>
+            <p className="font-semibold text-green-300" data-testid="text-signed-in-judge">
+              Signed in as {selectedJudge?.name ?? "judge"}
+            </p>
+            <p className="text-xs text-white/50">Scores will be recorded only under this identity.</p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={deleteSession.isPending}
+            onClick={handleJudgeSignOut}
+            data-testid="button-judge-sign-out"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <Card className="border-primary/20 bg-card overflow-hidden">
           {/* Identity Section */}
           <div className="bg-black/40 p-6 border-b border-white/5 space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <Label className="text-white/80 uppercase tracking-wider text-xs font-bold">1. Select Judge</Label>
-                <select 
-                  className="flex h-12 w-full rounded-md border border-white/10 bg-black/60 px-3 py-2 text-base text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 transition-colors"
-                  value={judgeId}
-                  onChange={(e) => setJudgeId(e.target.value)}
-                  disabled={loadingJudges || !rosterReady}
-                  data-testid="select-judge"
-                >
-                  <option value="" disabled>-- Choose your name --</option>
-                  {judges?.map(j => (
-                    <option key={j.id} value={j.id}>{j.name}</option>
-                  ))}
-                </select>
-              </div>
-              
+            <div>
               <div className="space-y-3">
                 <Label className="text-white/80 uppercase tracking-wider text-xs font-bold">2. Category</Label>
                 <div className="flex gap-2">
@@ -270,7 +387,7 @@ export default function ScoreEntry() {
                       type="button"
                       onClick={() => setSchoolCode(school.code)}
                       disabled={
-                        !judgeId ||
+                        selectedJudgeId == null ||
                         loadingExistingScores ||
                         alreadyScored ||
                         !rosterReady
@@ -294,9 +411,9 @@ export default function ScoreEntry() {
                   );
                 })}
               </div>
-              {judgeId && (
+              {selectedJudgeId != null && (
                 <p className="text-xs text-white/45" data-testid="text-scoring-progress">
-                  {scoredSchoolCodes.size}/5 entries scored by the selected judge in the {category} category.
+                  {scoredSchoolCodes.size}/5 entries scored by you in the {category} category.
                 </p>
               )}
             </div>

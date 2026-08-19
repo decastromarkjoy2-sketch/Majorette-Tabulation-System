@@ -8,6 +8,8 @@ servers:
   - url: /api
     description: Base API path
 tags:
+  - name: auth
+    description: Judge and organizer sessions
   - name: health
     description: Health operations
   - name: judges
@@ -18,6 +20,96 @@ tags:
     description: Tabulation and leaderboard
 
 paths:
+  /auth/session:
+    get:
+      operationId: getSession
+      tags: [auth]
+      summary: Get the current browser session
+      responses:
+        "200":
+          description: Current session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+    delete:
+      operationId: deleteSession
+      tags: [auth]
+      summary: Sign out of the current session
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+  /auth/organizer-sessions:
+    post:
+      operationId: createOrganizerSession
+      tags: [auth]
+      summary: Sign in as an organizer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessCodeInput"
+      responses:
+        "201":
+          description: Organizer session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid access code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Organizer access is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /auth/judge-sessions:
+    post:
+      operationId: createJudgeSession
+      tags: [auth]
+      summary: Sign in as a judge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JudgeAccessCodeInput"
+      responses:
+        "201":
+          description: Judge session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid judge credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /healthz:
     get:
       operationId: healthCheck
@@ -62,7 +154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Judge"
+                $ref: "#/components/schemas/JudgeRegistration"
         "400":
           description: Bad request
           content:
@@ -71,6 +163,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
           description: Three-judge roster is already full or the judge already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Organizer authorization is required
           content:
             application/json:
               schema:
@@ -96,6 +194,45 @@ paths:
                 $ref: "#/components/schemas/DeleteResult"
         "404":
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Organizer authorization is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /judges/{id}/access-code:
+    post:
+      operationId: resetJudgeAccessCode
+      tags: [judges]
+      summary: Generate a new judge access code
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+            minimum: 1
+            multipleOf: 1
+      responses:
+        "200":
+          description: Access code generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JudgeRegistration"
+        "403":
+          description: Organizer authorization is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Judge not found
           content:
             application/json:
               schema:
@@ -161,6 +298,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Judge authentication is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /scores/{id}:
     delete:
@@ -182,6 +325,12 @@ paths:
                 $ref: "#/components/schemas/DeleteResult"
         "404":
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Organizer authorization is required
           content:
             application/json:
               schema:
@@ -264,10 +413,13 @@ components:
           type: string
         createdAt:
           type: string
+        hasAccessCode:
+          type: boolean
       required:
         - id
         - name
         - createdAt
+        - hasAccessCode
 
     JudgeInput:
       type: object
@@ -277,6 +429,51 @@ components:
           minLength: 1
       required:
         - name
+
+    JudgeRegistration:
+      allOf:
+        - $ref: "#/components/schemas/Judge"
+        - type: object
+          properties:
+            accessCode:
+              type: string
+              description: Share this one-time displayed code privately with the judge.
+          required:
+            - accessCode
+
+    AccessCodeInput:
+      type: object
+      properties:
+        accessCode:
+          type: string
+          minLength: 8
+          maxLength: 256
+      required:
+        - accessCode
+
+    JudgeAccessCodeInput:
+      allOf:
+        - $ref: "#/components/schemas/AccessCodeInput"
+        - type: object
+          properties:
+            judgeId:
+              type: number
+              minimum: 1
+              multipleOf: 1
+          required:
+            - judgeId
+
+    Session:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [anonymous, judge, organizer]
+        judgeId:
+          type: ["number", "null"]
+      required:
+        - role
+        - judgeId
 
     Score:
       type: object
@@ -338,8 +535,6 @@ components:
     ScoreInput:
       type: object
       properties:
-        judgeId:
-          type: number
         category:
           type: string
           enum: [group, solo]
@@ -363,7 +558,6 @@ components:
           minimum: 0
           multipleOf: 1
       required:
-        - judgeId
         - category
         - schoolCode
         - rawCriterion1

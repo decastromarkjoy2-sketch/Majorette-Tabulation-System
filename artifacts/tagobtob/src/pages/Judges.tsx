@@ -3,6 +3,7 @@ import {
   useListJudges, 
   useCreateJudge, 
   useDeleteJudge,
+  useResetJudgeAccessCode,
   getListJudgesQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, Trash2, UserPlus, Users } from "lucide-react";
+import { CheckCircle2, Copy, KeyRound, Trash2, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { OrganizerGate } from "@/components/auth/OrganizerGate";
 
 const REQUIRED_JUDGE_COUNT = 3;
 
@@ -21,10 +23,15 @@ export default function Judges() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [newJudgeName, setNewJudgeName] = useState("");
+  const [issuedCredential, setIssuedCredential] = useState<{
+    judgeName: string;
+    accessCode: string;
+  } | null>(null);
   
   const { data: judges, isLoading } = useListJudges();
   const createJudge = useCreateJudge();
   const deleteJudge = useDeleteJudge();
+  const resetAccessCode = useResetJudgeAccessCode();
   const judgeCount = judges?.length ?? 0;
   const rosterIsFull = judgeCount >= REQUIRED_JUDGE_COUNT;
   
@@ -33,8 +40,9 @@ export default function Judges() {
     if (!newJudgeName.trim() || rosterIsFull) return;
     
     createJudge.mutate({ data: { name: newJudgeName.trim() } }, {
-      onSuccess: () => {
+      onSuccess: (judge) => {
         setNewJudgeName("");
+        setIssuedCredential({ judgeName: judge.name, accessCode: judge.accessCode });
         queryClient.invalidateQueries({ queryKey: getListJudgesQueryKey() });
         toast({
           title: "Judge Added",
@@ -49,6 +57,30 @@ export default function Judges() {
         });
       }
     });
+  };
+
+  const handleResetAccessCode = (id: number, name: string, hasAccessCode: boolean) => {
+    const message = hasAccessCode
+      ? `Generate a new access code for ${name}? Their previous code will stop working immediately.`
+      : `Generate an access code for ${name}?`;
+    if (!confirm(message)) return;
+
+    resetAccessCode.mutate(
+      { id },
+      {
+        onSuccess: (judge) => {
+          setIssuedCredential({ judgeName: judge.name, accessCode: judge.accessCode });
+          queryClient.invalidateQueries({ queryKey: getListJudgesQueryKey() });
+        },
+        onError: (error) => {
+          toast({
+            title: "Access Code Failed",
+            description: error.data?.error || "Failed to generate an access code.",
+            variant: "destructive",
+          });
+        },
+      },
+    );
   };
 
   const handleDelete = (id: number) => {
@@ -99,6 +131,7 @@ export default function Judges() {
         </div>
       </div>
 
+      <OrganizerGate title="Unlock judge management">
       <div
         className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
           rosterIsFull
@@ -113,6 +146,41 @@ export default function Judges() {
             : `${REQUIRED_JUDGE_COUNT - judgeCount} judge slot${REQUIRED_JUDGE_COUNT - judgeCount === 1 ? "" : "s"} remaining. Scoring stays locked until all three judges are registered.`}
         </p>
       </div>
+
+      {issuedCredential && (
+        <Card className="border-primary/30 bg-primary/5" data-testid="card-issued-judge-code">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <KeyRound className="h-5 w-5 text-primary" />
+              Save {issuedCredential.judgeName}&apos;s access code now
+            </CardTitle>
+            <CardDescription>
+              This code is shown only here. Share it privately with the judge; generating another
+              code will invalidate this one.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row">
+            <Input
+              readOnly
+              value={issuedCredential.accessCode}
+              className="font-mono"
+              data-testid="input-issued-judge-code"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigator.clipboard.writeText(issuedCredential.accessCode)}
+              data-testid="button-copy-judge-code"
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copy
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setIssuedCredential(null)}>
+              I saved it
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid md:grid-cols-3 gap-8">
         <Card className="md:col-span-1 h-fit border-primary/20 bg-black/40">
@@ -177,6 +245,7 @@ export default function Judges() {
                     <TableHead>ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Registered</TableHead>
+                     <TableHead>Access</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -188,7 +257,23 @@ export default function Judges() {
                       <TableCell className="text-muted-foreground">
                         {format(new Date(judge.createdAt), "MMM d, yyyy")}
                       </TableCell>
+                      <TableCell>
+                        <span className={judge.hasAccessCode ? "text-green-300" : "text-amber-300"}>
+                          {judge.hasAccessCode ? "Ready" : "Code needed"}
+                        </span>
+                      </TableCell>
                       <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => handleResetAccessCode(judge.id, judge.name, judge.hasAccessCode)}
+                          disabled={resetAccessCode.isPending}
+                          title={judge.hasAccessCode ? "Replace access code" : "Generate access code"}
+                          data-testid={`button-reset-judge-code-${judge.id}`}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
@@ -208,6 +293,7 @@ export default function Judges() {
           </CardContent>
         </Card>
       </div>
+      </OrganizerGate>
     </div>
   );
 }

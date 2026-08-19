@@ -9,6 +9,7 @@ import {
   DeleteScoreParams,
   DeleteScoreResponse,
 } from "@workspace/api-zod";
+import { getSession, requireOrganizer } from "../lib/auth";
 
 const router: IRouter = Router();
 const REQUIRED_JUDGE_COUNT = 3;
@@ -77,8 +78,14 @@ router.post("/scores", async (req, res): Promise<void> => {
     return;
   }
 
-  const { judgeId, category, schoolCode, rawCriterion1, rawCriterion2, rawCriterion3, deductionCount } =
+  const { category, schoolCode, rawCriterion1, rawCriterion2, rawCriterion3, deductionCount } =
     parsed.data;
+  const session = getSession(req);
+  if (session?.role !== "judge" || !session.judgeId) {
+    res.status(401).json({ error: "Sign in with your judge access code before submitting scores." });
+    return;
+  }
+  const judgeId = session.judgeId;
 
   const school = SCHOOLS[schoolCode];
   if (!school) {
@@ -87,7 +94,11 @@ router.post("/scores", async (req, res): Promise<void> => {
   }
 
   const judges = await db
-    .select({ id: judgesTable.id, name: judgesTable.name })
+    .select({
+      id: judgesTable.id,
+      name: judgesTable.name,
+      accessCodeVersion: judgesTable.accessCodeVersion,
+    })
     .from(judgesTable)
     .orderBy(judgesTable.createdAt);
 
@@ -101,6 +112,12 @@ router.post("/scores", async (req, res): Promise<void> => {
   const judge = judges.find((registeredJudge) => registeredJudge.id === judgeId);
   if (!judge) {
     res.status(400).json({ error: "The selected judge is not registered." });
+    return;
+  }
+  if (judge.accessCodeVersion !== session.accessCodeVersion) {
+    res.status(401).json({
+      error: "Your judge session is no longer valid. Sign in again with the current access code.",
+    });
     return;
   }
 
@@ -180,6 +197,7 @@ router.post("/scores", async (req, res): Promise<void> => {
 });
 
 router.delete("/scores/:id", async (req, res): Promise<void> => {
+  if (!requireOrganizer(req, res)) return;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const params = DeleteScoreParams.safeParse({ id: parseInt(raw, 10) });
   if (!params.success) {

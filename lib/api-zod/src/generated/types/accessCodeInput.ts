@@ -6,9 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface Judge {
-  id: number;
-  name: string;
-  createdAt: string;
-  hasAccessCode: boolean;
+export interface AccessCodeInput {
+  /**
+     * @minLength 8
+     * @maxLength 256
+     */
+  accessCode: string;
 }

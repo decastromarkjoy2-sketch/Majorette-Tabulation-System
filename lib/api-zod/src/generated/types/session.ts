@@ -5,10 +5,10 @@
  * TAGOBTOB Judging & Tabulation System API
  * OpenAPI spec version: 0.1.0
  */
+import type { SessionRole } from './sessionRole';
 
-export interface Judge {
-  id: number;
-  name: string;
-  createdAt: string;
-  hasAccessCode: boolean;
+export interface Session {
+  role: SessionRole;
+  /** @nullable */
+  judgeId: number | null;
 }

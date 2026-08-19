@@ -9,6 +9,64 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Get the current browser session
+ */
+export const GetSessionResponse = zod.object({
+  "role": zod.enum(['anonymous', 'judge', 'organizer']),
+  "judgeId": zod.number().nullable()
+})
+
+
+/**
+ * @summary Sign out of the current session
+ */
+export const DeleteSessionResponse = zod.object({
+  "role": zod.enum(['anonymous', 'judge', 'organizer']),
+  "judgeId": zod.number().nullable()
+})
+
+
+/**
+ * @summary Sign in as an organizer
+ */
+export const createOrganizerSessionBodyAccessCodeMin = 8;
+export const createOrganizerSessionBodyAccessCodeMax = 256;
+
+
+
+export const CreateOrganizerSessionBody = zod.object({
+  "accessCode": zod.string().min(createOrganizerSessionBodyAccessCodeMin).max(createOrganizerSessionBodyAccessCodeMax)
+})
+
+export const CreateOrganizerSessionResponse = zod.object({
+  "role": zod.enum(['anonymous', 'judge', 'organizer']),
+  "judgeId": zod.number().nullable()
+})
+
+
+/**
+ * @summary Sign in as a judge
+ */
+export const createJudgeSessionBodyOneAccessCodeMin = 8;
+export const createJudgeSessionBodyOneAccessCodeMax = 256;
+
+export const createJudgeSessionBodyTwoJudgeIdMultipleOf = 1;
+
+
+
+export const CreateJudgeSessionBody = zod.object({
+  "accessCode": zod.string().min(createJudgeSessionBodyOneAccessCodeMin).max(createJudgeSessionBodyOneAccessCodeMax)
+}).and(zod.object({
+  "judgeId": zod.number().min(1).multipleOf(createJudgeSessionBodyTwoJudgeIdMultipleOf)
+}))
+
+export const CreateJudgeSessionResponse = zod.object({
+  "role": zod.enum(['anonymous', 'judge', 'organizer']),
+  "judgeId": zod.number().nullable()
+})
+
+
+/**
  * Returns server health status
  * @summary Health check
  */
@@ -23,7 +81,8 @@ export const HealthCheckResponse = zod.object({
 export const ListJudgesResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "hasAccessCode": zod.boolean()
 })
 export const ListJudgesResponse = zod.array(ListJudgesResponseItem)
 
@@ -41,8 +100,11 @@ export const CreateJudgeBody = zod.object({
 export const CreateJudgeResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
-  "createdAt": zod.string()
-})
+  "createdAt": zod.string(),
+  "hasAccessCode": zod.boolean()
+}).and(zod.object({
+  "accessCode": zod.string().describe('Share this one-time displayed code privately with the judge.')
+}))
 
 
 /**
@@ -56,6 +118,27 @@ export const DeleteJudgeResponse = zod.object({
   "success": zod.boolean(),
   "id": zod.number()
 })
+
+
+/**
+ * @summary Generate a new judge access code
+ */
+export const resetJudgeAccessCodePathIdMultipleOf = 1;
+
+
+
+export const ResetJudgeAccessCodeParams = zod.object({
+  "id": zod.coerce.number().min(1).multipleOf(resetJudgeAccessCodePathIdMultipleOf)
+})
+
+export const ResetJudgeAccessCodeResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string(),
+  "hasAccessCode": zod.boolean()
+}).and(zod.object({
+  "accessCode": zod.string().describe('Share this one-time displayed code privately with the judge.')
+}))
 
 
 /**
@@ -107,7 +190,6 @@ export const submitScoreBodyDeductionCountMultipleOf = 1;
 
 
 export const SubmitScoreBody = zod.object({
-  "judgeId": zod.number(),
   "category": zod.enum(['group', 'solo']),
   "schoolCode": zod.enum(['01', '02', '03', '04', '05']),
   "rawCriterion1": zod.number().min(submitScoreBodyRawCriterion1Min).max(submitScoreBodyRawCriterion1Max),

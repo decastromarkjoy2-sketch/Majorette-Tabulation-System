@@ -22,11 +22,45 @@ export interface Judge {
   id: number;
   name: string;
   createdAt: string;
+  hasAccessCode: boolean;
 }
 
 export interface JudgeInput {
   /** @minLength 1 */
   name: string;
+}
+
+export type JudgeRegistration = Judge & {
+  /** Share this one-time displayed code privately with the judge. */
+  accessCode: string;
+};
+
+export interface AccessCodeInput {
+  /**
+     * @minLength 8
+     * @maxLength 256
+     */
+  accessCode: string;
+}
+
+export type JudgeAccessCodeInput = AccessCodeInput & {
+  /** @minimum 1 */
+  judgeId: number;
+};
+
+export type SessionRole = typeof SessionRole[keyof typeof SessionRole];
+
+
+export const SessionRole = {
+  anonymous: 'anonymous',
+  judge: 'judge',
+  organizer: 'organizer',
+} as const;
+
+export interface Session {
+  role: SessionRole;
+  /** @nullable */
+  judgeId: number | null;
 }
 
 export type ScoreCategory = typeof ScoreCategory[keyof typeof ScoreCategory];
@@ -77,7 +111,6 @@ export const ScoreInputSchoolCode = {
 } as const;
 
 export interface ScoreInput {
-  judgeId: number;
   category: ScoreInputCategory;
   schoolCode: ScoreInputSchoolCode;
   /**

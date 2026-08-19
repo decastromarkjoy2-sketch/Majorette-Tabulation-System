@@ -20,14 +20,18 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccessCodeInput,
   DeleteResult,
   ErrorResponse,
   HealthStatus,
   Judge,
+  JudgeAccessCodeInput,
   JudgeInput,
+  JudgeRegistration,
   ListScoresParams,
   Score,
   ScoreInput,
+  Session,
   TabulationResult,
   TabulationSummary
 } from './api.schemas';
@@ -58,6 +62,296 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetSessionUrl = () => {
+
+
+
+
+  return `/api/auth/session`
+}
+
+/**
+ * @summary Get the current browser session
+ */
+export const getSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<Session> => {
+
+  return customFetch<Session>(getGetSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionQueryKey = () => {
+    return [
+    `/api/auth/session`
+    ] as const;
+    }
+
+
+export const getGetSessionQueryOptions = <TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSession>>> = ({ signal }) => getSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
+export type GetSessionQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the current browser session
+ */
+
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteSessionUrl = () => {
+
+
+
+
+  return `/api/auth/session`
+}
+
+/**
+ * @summary Sign out of the current session
+ */
+export const deleteSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<Session> => {
+
+  return customFetch<Session>(getDeleteSessionUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSession>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteSession>>, TError,void, TContext> => {
+
+const mutationKey = ['deleteSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSession>>, void> = () => {
+
+
+          return  deleteSession(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteSessionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSession>>>
+
+    export type DeleteSessionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Sign out of the current session
+ */
+export const useDeleteSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSession>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteSession>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getDeleteSessionMutationOptions(options));
+    }
+
+export const getCreateOrganizerSessionUrl = () => {
+
+
+
+
+  return `/api/auth/organizer-sessions`
+}
+
+/**
+ * @summary Sign in as an organizer
+ */
+export const createOrganizerSession = async (accessCodeInput: AccessCodeInput, options?: Parameters<typeof customFetch>[1]): Promise<Session> => {
+
+  return customFetch<Session>(getCreateOrganizerSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(accessCodeInput)
+  }
+);}
+
+
+
+
+
+export const getCreateOrganizerSessionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOrganizerSession>>, TError,{data: BodyType<AccessCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOrganizerSession>>, TError,{data: BodyType<AccessCodeInput>}, TContext> => {
+
+const mutationKey = ['createOrganizerSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOrganizerSession>>, {data: BodyType<AccessCodeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createOrganizerSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateOrganizerSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createOrganizerSession>>>
+    export type CreateOrganizerSessionMutationBody = BodyType<AccessCodeInput>
+    export type CreateOrganizerSessionMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Sign in as an organizer
+ */
+export const useCreateOrganizerSession = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOrganizerSession>>, TError,{data: BodyType<AccessCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createOrganizerSession>>,
+        TError,
+        {data: BodyType<AccessCodeInput>},
+        TContext
+      > => {
+      return useMutation(getCreateOrganizerSessionMutationOptions(options));
+    }
+
+export const getCreateJudgeSessionUrl = () => {
+
+
+
+
+  return `/api/auth/judge-sessions`
+}
+
+/**
+ * @summary Sign in as a judge
+ */
+export const createJudgeSession = async (judgeAccessCodeInput: JudgeAccessCodeInput, options?: Parameters<typeof customFetch>[1]): Promise<Session> => {
+
+  return customFetch<Session>(getCreateJudgeSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(judgeAccessCodeInput)
+  }
+);}
+
+
+
+
+
+export const getCreateJudgeSessionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createJudgeSession>>, TError,{data: BodyType<JudgeAccessCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createJudgeSession>>, TError,{data: BodyType<JudgeAccessCodeInput>}, TContext> => {
+
+const mutationKey = ['createJudgeSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createJudgeSession>>, {data: BodyType<JudgeAccessCodeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createJudgeSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateJudgeSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createJudgeSession>>>
+    export type CreateJudgeSessionMutationBody = BodyType<JudgeAccessCodeInput>
+    export type CreateJudgeSessionMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Sign in as a judge
+ */
+export const useCreateJudgeSession = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createJudgeSession>>, TError,{data: BodyType<JudgeAccessCodeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createJudgeSession>>,
+        TError,
+        {data: BodyType<JudgeAccessCodeInput>},
+        TContext
+      > => {
+      return useMutation(getCreateJudgeSessionMutationOptions(options));
+    }
 
 export const getHealthCheckUrl = () => {
 
@@ -225,9 +519,9 @@ export const getCreateJudgeUrl = () => {
 /**
  * @summary Create a new judge
  */
-export const createJudge = async (judgeInput: JudgeInput, options?: Parameters<typeof customFetch>[1]): Promise<Judge> => {
+export const createJudge = async (judgeInput: JudgeInput, options?: Parameters<typeof customFetch>[1]): Promise<JudgeRegistration> => {
 
-  return customFetch<Judge>(getCreateJudgeUrl(),
+  return customFetch<JudgeRegistration>(getCreateJudgeUrl(),
   {
     ...options,
     method: 'POST',
@@ -354,6 +648,77 @@ export const useDeleteJudge = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getDeleteJudgeMutationOptions(options));
+    }
+
+export const getResetJudgeAccessCodeUrl = (id: number,) => {
+
+
+
+
+  return `/api/judges/${id}/access-code`
+}
+
+/**
+ * @summary Generate a new judge access code
+ */
+export const resetJudgeAccessCode = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<JudgeRegistration> => {
+
+  return customFetch<JudgeRegistration>(getResetJudgeAccessCodeUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getResetJudgeAccessCodeMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetJudgeAccessCode>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resetJudgeAccessCode>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['resetJudgeAccessCode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resetJudgeAccessCode>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  resetJudgeAccessCode(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResetJudgeAccessCodeMutationResult = NonNullable<Awaited<ReturnType<typeof resetJudgeAccessCode>>>
+
+    export type ResetJudgeAccessCodeMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Generate a new judge access code
+ */
+export const useResetJudgeAccessCode = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetJudgeAccessCode>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resetJudgeAccessCode>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getResetJudgeAccessCodeMutationOptions(options));
     }
 
 export const getListScoresUrl = (params?: ListScoresParams,) => {
