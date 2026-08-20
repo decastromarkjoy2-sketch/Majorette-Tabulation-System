@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, CheckCircle2, ClipboardCheck, KeyRound, LockKeyhole, LogOut } from "lucide-react";
+import { Calculator, CheckCircle2, ClipboardCheck, KeyRound, LockKeyhole, LogOut, Printer } from "lucide-react";
 
 const SCHOOLS = [
   { code: ScoreInputSchoolCode.NUMBER_01, name: "GNHS" },
@@ -92,6 +92,7 @@ export default function ScoreEntry() {
   const selectedSchoolAlreadyScored = schoolCode
     ? scoredSchoolCodes.has(schoolCode)
     : false;
+  const selectedSchool = SCHOOLS.find((school) => school.code === schoolCode);
 
   const { totalScore, isValid } = useMemo(() => {
     const v1 = parseFloat(c1) || 0;
@@ -204,7 +205,8 @@ export default function ScoreEntry() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <>
+      <div className="score-entry-screen max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-3">
           <ClipboardCheck className="h-8 w-8 text-primary" />
@@ -503,7 +505,20 @@ export default function ScoreEntry() {
               </div>
             </div>
 
-            <Button 
+             <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row">
+             <Button
+               type="button"
+               variant="outline"
+               size="xl"
+               className="w-full md:w-auto"
+               disabled={selectedJudgeId == null || !schoolCode}
+               onClick={() => window.print()}
+               data-testid="button-print-score-sheet"
+             >
+               <Printer className="mr-2 h-5 w-5" />
+               Print Score Sheet
+             </Button>
+             <Button 
               type="submit"
               variant="glow"
               size="xl"
@@ -513,9 +528,81 @@ export default function ScoreEntry() {
             >
               {submitScore.isPending ? "Submitting..." : "Submit Final Score"}
             </Button>
+             </div>
           </CardFooter>
         </Card>
       </form>
-    </div>
+      </div>
+
+      <section className="print-score-sheet" aria-label="Printable score sheet">
+        <header className="print-score-sheet__header">
+          <p className="print-score-sheet__eyebrow">OFFICIAL JUDGING FORM</p>
+          <h1>TAGOBTOB: Paindigay nan Majorette ug Twirlers</h1>
+          <p className="print-score-sheet__category">
+            {category === "group" ? "Group Category" : "Solo / Mother Majorette Category"}
+          </p>
+        </header>
+
+        <div className="print-score-sheet__details">
+          <div>
+            <span className="print-score-sheet__label">Judge</span>
+            <strong>{selectedJudge?.name ?? "________________________________"}</strong>
+          </div>
+          <div>
+            <span className="print-score-sheet__label">School / Entry</span>
+            <strong>
+              {selectedSchool ? `${selectedSchool.name} (${selectedSchool.code})` : "________________________________"}
+            </strong>
+          </div>
+          <div>
+            <span className="print-score-sheet__label">Category</span>
+            <strong>{category === "group" ? "GROUP" : "SOLO (Mother Majorette)"}</strong>
+          </div>
+        </div>
+
+        <table className="print-score-sheet__criteria">
+          <thead>
+            <tr>
+              <th scope="col">Criteria</th>
+              <th scope="col">Weight</th>
+              <th scope="col">Judge's Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {criteria.map((criterion) => (
+              <tr key={criterion.id}>
+                <td>{criterion.label}</td>
+                <td>{criterion.max}%</td>
+                <td className="print-score-sheet__score-cell">
+                  {criterion.id === 1 && c1 ? c1 : criterion.id === 2 && c2 ? c2 : criterion.id === 3 && c3 ? c3 : ""}
+                </td>
+              </tr>
+            ))}
+            <tr className="print-score-sheet__total-row">
+              <td>Total Score</td>
+              <td>100%</td>
+              <td>{c1 || c2 || c3 ? totalScore.toFixed(2) : ""}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="print-score-sheet__violations">
+          <strong>Rule violations / deductions:</strong>
+          <span>{hasDeduction ? `${deductionCount} violation${deductionCount === "1" ? "" : "s"} (-${parseInt(deductionCount, 10) * 10} points)` : ""}</span>
+        </div>
+        <div className="print-score-sheet__line" />
+
+        <div className="print-score-sheet__signatures">
+          <div>
+            <span>Judge's Signature</span>
+            <div className="print-score-sheet__signature-line" />
+          </div>
+          <div>
+            <span>Date</span>
+            <div className="print-score-sheet__signature-line" />
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
