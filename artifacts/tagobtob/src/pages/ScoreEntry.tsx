@@ -501,8 +501,8 @@ export default function ScoreEntry() {
             </div>
           </div>
 
-          <CardFooter className="bg-black/60 p-6 border-t border-white/10 flex flex-col md:flex-row gap-6 items-center justify-between">
-            <div className="flex items-center gap-4 w-full md:w-auto">
+          <CardFooter className="bg-black/60 p-6 border-t border-white/10 flex flex-col gap-6 items-stretch">
+            <div className="flex items-center gap-4 w-full">
               <div className="p-3 bg-primary/10 rounded-full">
                 <Calculator className="h-6 w-6 text-primary" />
               </div>
@@ -516,12 +516,12 @@ export default function ScoreEntry() {
               </div>
             </div>
 
-             <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row">
+             <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
              <Button
                type="button"
                variant="outline"
-               size="xl"
-               className="w-full md:w-auto"
+               size="lg"
+               className="w-full min-w-0 px-3 text-sm uppercase tracking-wide sm:text-base"
                onClick={() => window.print()}
                data-testid="button-print-blank-score-form"
              >
@@ -531,8 +531,8 @@ export default function ScoreEntry() {
              <Button 
               type="submit"
               variant="glow"
-              size="xl"
-              className="w-full md:w-auto"
+               size="lg"
+               className="w-full min-w-0 px-3 text-sm uppercase tracking-wide sm:text-base"
               disabled={!isValid || submitScore.isPending}
               data-testid="button-submit-score"
             >
