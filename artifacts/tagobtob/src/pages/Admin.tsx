@@ -43,7 +43,7 @@ export default function Admin() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight flex items-center gap-3">
           <Settings className="h-8 w-8 text-primary" />
           System Admin
         </h1>
@@ -51,7 +51,7 @@ export default function Admin() {
       </div>
 
       <OrganizerGate title="Unlock score administration">
-      <Card className="border-white/10 bg-black/40">
+      <Card className="border-border bg-card shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl flex items-center justify-between">
             Score Audit Trail
@@ -64,14 +64,14 @@ export default function Admin() {
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">Loading scores...</div>
           ) : !scores || scores.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-white/10 rounded-lg text-muted-foreground">
+            <div className="p-8 text-center border border-dashed border-border rounded-lg text-muted-foreground">
               No scores have been submitted yet.
             </div>
           ) : (
-            <div className="rounded-md overflow-hidden border border-white/10">
+            <div className="rounded-md overflow-hidden border border-border">
               <Table>
-                <TableHeader className="bg-black/60">
-                  <TableRow className="border-white/10">
+                <TableHeader className="bg-muted/70">
+                  <TableRow className="border-border">
                     <TableHead>Time</TableHead>
                     <TableHead>Judge</TableHead>
                     <TableHead>Category</TableHead>
@@ -86,11 +86,11 @@ export default function Admin() {
                 </TableHeader>
                 <TableBody>
                   {scores.map((score) => (
-                    <TableRow key={score.id} className="border-white/5 group">
+                    <TableRow key={score.id} className="border-border group">
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                         {format(new Date(score.createdAt), "HH:mm:ss")}
                       </TableCell>
-                      <TableCell className="font-medium text-white/90">{score.judgeName}</TableCell>
+                      <TableCell className="font-medium text-foreground">{score.judgeName}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${
                           score.category === 'group' ? 'bg-primary/20 text-primary' : 'bg-secondary/20 text-secondary'
@@ -99,9 +99,9 @@ export default function Admin() {
                         </span>
                       </TableCell>
                       <TableCell className="font-bold">{score.schoolName}</TableCell>
-                      <TableCell className="text-right font-mono text-white/70">{score.rawCriterion1}</TableCell>
-                      <TableCell className="text-right font-mono text-white/70">{score.rawCriterion2}</TableCell>
-                      <TableCell className="text-right font-mono text-white/70">{score.rawCriterion3}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{score.rawCriterion1}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{score.rawCriterion2}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{score.rawCriterion3}</TableCell>
                       <TableCell className="text-right font-mono text-destructive">
                         {score.deductionCount > 0 ? `-${score.deductionCount * 10}` : '0'}
                       </TableCell>

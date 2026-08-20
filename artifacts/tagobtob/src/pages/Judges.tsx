@@ -108,7 +108,7 @@ export default function Judges() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight flex items-center gap-3">
             <Users className="h-8 w-8 text-primary" />
             Judge Management
           </h1>
@@ -122,10 +122,10 @@ export default function Judges() {
           }`}
           data-testid="status-judge-roster"
         >
-          <div className="text-2xl font-mono font-black text-white">
+          <div className="text-2xl font-mono font-black text-foreground">
             {judgeCount}/{REQUIRED_JUDGE_COUNT}
           </div>
-          <div className="text-xs font-bold uppercase tracking-wider text-white/60">
+          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {rosterIsFull ? "Roster Ready" : "Judges Registered"}
           </div>
         </div>
@@ -135,8 +135,8 @@ export default function Judges() {
       <div
         className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
           rosterIsFull
-            ? "border-green-500/20 bg-green-500/5 text-green-300"
-            : "border-amber-500/20 bg-amber-500/5 text-amber-200"
+            ? "border-green-700/30 bg-green-50 text-green-800"
+            : "border-amber-700/30 bg-amber-50 text-amber-900"
         }`}
       >
         <CheckCircle2 className="h-5 w-5 shrink-0" />
@@ -183,7 +183,7 @@ export default function Judges() {
       )}
 
       <div className="grid md:grid-cols-3 gap-8">
-        <Card className="md:col-span-1 h-fit border-primary/20 bg-black/40">
+        <Card className="md:col-span-1 h-fit border-primary/30 bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="text-xl">Add New Judge</CardTitle>
             <CardDescription>
@@ -195,13 +195,13 @@ export default function Judges() {
           <CardContent>
             <form onSubmit={handleAddJudge} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-white/80">Judge Name</Label>
+                <Label htmlFor="name" className="text-foreground/80">Judge Name</Label>
                 <Input 
                   id="name" 
                   value={newJudgeName} 
                   onChange={(e) => setNewJudgeName(e.target.value)} 
                   placeholder="e.g. Dr. Maria Santos"
-                  className="bg-black/50 border-white/10 text-white"
+                  className="bg-background border-input text-foreground"
                   disabled={createJudge.isPending || rosterIsFull}
                   data-testid="input-judge-name"
                 />
@@ -222,7 +222,7 @@ export default function Judges() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2 border-white/5 bg-black/20">
+        <Card className="md:col-span-2 border-border bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="text-xl flex items-center justify-between">
               Registered Judges
@@ -235,13 +235,13 @@ export default function Judges() {
             {isLoading ? (
               <div className="flex justify-center p-8 text-muted-foreground">Loading judges...</div>
             ) : !judges || judges.length === 0 ? (
-              <div className="text-center p-8 border border-dashed border-white/10 rounded-lg text-muted-foreground">
+              <div className="text-center p-8 border border-dashed border-border rounded-lg text-muted-foreground">
                 No judges registered yet.
               </div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
+                  <TableRow className="border-border hover:bg-transparent">
                     <TableHead>ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Registered</TableHead>
@@ -251,14 +251,14 @@ export default function Judges() {
                 </TableHeader>
                 <TableBody>
                   {judges.map((judge) => (
-                    <TableRow key={judge.id} className="border-white/5 group">
+                    <TableRow key={judge.id} className="border-border group">
                       <TableCell className="font-mono text-muted-foreground">#{judge.id}</TableCell>
-                      <TableCell className="font-medium text-white/90">{judge.name}</TableCell>
+                      <TableCell className="font-medium text-foreground">{judge.name}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(judge.createdAt), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell>
-                        <span className={judge.hasAccessCode ? "text-green-300" : "text-amber-300"}>
+                        <span className={judge.hasAccessCode ? "text-green-700" : "text-amber-800"}>
                           {judge.hasAccessCode ? "Ready" : "Code needed"}
                         </span>
                       </TableCell>

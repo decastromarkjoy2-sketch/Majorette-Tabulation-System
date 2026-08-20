@@ -61,49 +61,48 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Base Theme - Forced Dark/Jewel tones */
+/* Base Theme - High-contrast daylight light mode */
 :root {
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
+  --button-outline: rgba(15, 31, 51, 0.16);
+  --badge-outline: rgba(15, 31, 51, 0.12);
 
   --opaque-button-border-intensity: 9;
 
-  --elevate-1: rgba(255, 255, 255, 0.04);
-  --elevate-2: rgba(255, 255, 255, 0.09);
+  --elevate-1: rgba(15, 31, 51, 0.04);
+  --elevate-2: rgba(15, 31, 51, 0.08);
 
-  /* Near black, deep midnight blue background */
-  --background: 222 47% 6%;
-  --foreground: 210 40% 98%;
+  --background: 210 25% 97%;
+  --foreground: 217 39% 14%;
 
-  --border: 217 32% 17%;
+  --border: 214 23% 78%;
   
-  --card: 222 47% 8%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 217 32% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 217 39% 14%;
+  --card-border: 214 23% 78%;
 
-  --popover: 222 47% 8%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 217 32% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 217 39% 14%;
+  --popover-border: 214 23% 78%;
 
-  /* Gold */
-  --primary: 43 96% 56%;
-  --primary-foreground: 222 47% 6%;
+  /* Deep amber for outdoor-readable actions */
+  --primary: 41 88% 32%;
+  --primary-foreground: 0 0% 100%;
 
   /* Crimson */
-  --secondary: 348 83% 47%;
+  --secondary: 348 72% 40%;
   --secondary-foreground: 0 0% 100%;
 
-  --muted: 217 32% 17%;
-  --muted-foreground: 215 20.2% 65.1%;
+  --muted: 210 20% 92%;
+  --muted-foreground: 215 16% 36%;
 
-  --accent: 217 32% 17%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 210 20% 91%;
+  --accent-foreground: 217 39% 14%;
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 0 72% 42%;
+  --destructive-foreground: 0 0% 100%;
 
-  --input: 217 32% 17%;
-  --ring: 43 96% 56%;
+  --input: 214 23% 70%;
+  --ring: 41 88% 43%;
   
   --chart-1: 43 96% 56%;
   --chart-2: 348 83% 47%;
@@ -111,28 +110,28 @@
   --chart-4: 28 99% 54%;
   --chart-5: 142 71% 45%;
 
-  --sidebar: 222 47% 7%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 217 32% 17%;
-  --sidebar-primary: 43 96% 56%;
-  --sidebar-primary-foreground: 222 47% 6%;
-  --sidebar-accent: 217 32% 17%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 43 96% 56%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 217 39% 14%;
+  --sidebar-border: 214 23% 78%;
+  --sidebar-primary: 41 88% 32%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 20% 91%;
+  --sidebar-accent-foreground: 217 39% 14%;
+  --sidebar-ring: 41 88% 43%;
 
   --app-font-sans: 'Plus Jakarta Sans', sans-serif;
   --app-font-serif: 'Playfair Display', serif;
   --app-font-mono: Menlo, monospace;
   --radius: 0.5rem;
 
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0.5);
-  --shadow-sm: 0px 2px 4px 0px hsl(0 0% 0% / 0.5);
-  --shadow: 0px 4px 8px -2px hsl(0 0% 0% / 0.5);
-  --shadow-md: 0px 8px 16px -4px hsl(0 0% 0% / 0.5);
-  --shadow-lg: 0px 16px 24px -8px hsl(0 0% 0% / 0.5);
-  --shadow-xl: 0px 24px 32px -12px hsl(0 0% 0% / 0.5);
-  --shadow-2xl: 0px 32px 64px -16px hsl(0 0% 0% / 0.5);
+  --shadow-2xs: 0px 1px 2px 0px hsl(217 39% 14% / 0.06);
+  --shadow-xs: 0px 1px 3px 0px hsl(217 39% 14% / 0.08);
+  --shadow-sm: 0px 2px 5px 0px hsl(217 39% 14% / 0.1);
+  --shadow: 0px 4px 10px -2px hsl(217 39% 14% / 0.12);
+  --shadow-md: 0px 8px 18px -4px hsl(217 39% 14% / 0.14);
+  --shadow-lg: 0px 16px 28px -8px hsl(217 39% 14% / 0.14);
+  --shadow-xl: 0px 24px 40px -12px hsl(217 39% 14% / 0.16);
+  --shadow-2xl: 0px 32px 64px -16px hsl(217 39% 14% / 0.18);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -145,10 +144,6 @@
   --destructive-border: hsl(var(--destructive));
 }
 
-.dark {
-  /* Same as above, ensure it's always dark */
-}
-
 @layer base {
   * {
     @apply border-border;
@@ -156,8 +151,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground;
-    background-image: radial-gradient(circle at top, rgba(43, 96, 56, 0.03) 0%, transparent 40%),
-                      radial-gradient(circle at bottom right, rgba(220, 20, 60, 0.03) 0%, transparent 40%);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(239, 244, 248, 0.9));
     background-attachment: fixed;
   }
 

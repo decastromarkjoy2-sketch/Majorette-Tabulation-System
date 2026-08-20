@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils"
 const buttonVariantClasses = {
   default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/20",
   destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm shadow-destructive/20",
-  outline: "border border-border/50 bg-transparent hover:bg-white/5 text-foreground hover:border-white/20",
+  outline: "border border-border bg-background hover:bg-accent text-foreground hover:border-primary/40",
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-  ghost: "hover:bg-white/10 text-foreground",
+  ghost: "hover:bg-accent text-foreground",
   link: "text-primary underline-offset-4 hover:underline",
   glow: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_-3px_hsl(var(--primary)_/_0.4)] hover:shadow-[0_0_25px_-3px_hsl(var(--primary)_/_0.6)] border border-primary-foreground/10",
 } as const

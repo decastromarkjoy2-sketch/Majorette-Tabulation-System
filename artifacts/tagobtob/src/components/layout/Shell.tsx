@@ -20,11 +20,11 @@ export default function Shell({ children }: ShellProps) {
   ];
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+      <div className="min-h-[100dvh] flex flex-col bg-background relative overflow-hidden">
       {/* Decorative noise/texture background */}
-      <div className="pointer-events-none fixed inset-0 opacity-[0.015] z-0 mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm">
+       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/85 shadow-sm">
         <div className="container mx-auto flex h-16 items-center px-4 md:px-8">
           <div className="flex items-center gap-2 mr-8">
             <Award className="h-6 w-6 text-primary" />
@@ -39,8 +39,8 @@ export default function Shell({ children }: ShellProps) {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-white/5",
-                  location === link.href ? "bg-white/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                  "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
+                  location === link.href ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <link.icon className="h-4 w-4" />

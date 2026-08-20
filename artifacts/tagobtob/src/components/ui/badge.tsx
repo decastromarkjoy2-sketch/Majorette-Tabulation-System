@@ -8,9 +8,9 @@ const Badge = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEleme
       secondary: "border-transparent bg-secondary text-secondary-foreground",
       destructive: "border-transparent bg-destructive text-destructive-foreground",
       outline: "text-foreground border border-border/50",
-      gold: "border-transparent bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]",
-      silver: "border-transparent bg-gray-400/20 text-gray-300 border border-gray-400/30",
-      bronze: "border-transparent bg-orange-700/20 text-orange-400 border border-orange-700/30",
+      gold: "border-transparent bg-amber-100 text-amber-900 border border-amber-300 shadow-sm",
+      silver: "border-transparent bg-slate-200 text-slate-800 border border-slate-300",
+      bronze: "border-transparent bg-orange-100 text-orange-900 border border-orange-300",
     };
     
     return (

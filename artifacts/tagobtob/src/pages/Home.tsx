@@ -45,7 +45,7 @@ export default function Home() {
         return <Badge variant="bronze" className="text-sm px-3 py-1">3rd Place</Badge>;
       default:
         return (
-          <Badge variant="outline" className="whitespace-nowrap text-white/50">
+          <Badge variant="outline" className="whitespace-nowrap text-muted-foreground">
             Awaiting {missingJudgeCount}
           </Badge>
         );
@@ -71,7 +71,7 @@ export default function Home() {
       <Card className="flex flex-col h-full border-primary/10 bg-gradient-to-b from-card to-background relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-primary/10 transition-colors duration-1000"></div>
         
-        <CardHeader className="pb-4 relative z-10 border-b border-white/5">
+        <CardHeader className="pb-4 relative z-10 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-primary/10 rounded-lg">
@@ -79,18 +79,18 @@ export default function Home() {
               </div>
               <div>
                 <CardTitle className="text-2xl text-primary">{title}</CardTitle>
-                <CardDescription className="text-white/60 mt-1">Live Rankings</CardDescription>
+                <CardDescription className="text-muted-foreground mt-1">Live Rankings</CardDescription>
               </div>
             </div>
             <Link href={linkTo} className="flex items-center gap-1 text-xs text-primary/70 hover:text-primary transition-colors">
               Full Tabulation <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="flex gap-4 mt-4 text-sm text-white/50">
+          <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {result.totalJudges}/{result.requiredJudgeCount} Judges</span>
             <span className="flex items-center gap-1.5"><FileCheck className="h-4 w-4" /> {result.totalScoresSubmitted} Scores Submitted</span>
           </div>
-          <div className="flex items-center gap-1.5 mt-3 text-xs text-green-300/80">
+          <div className="flex items-center gap-1.5 mt-3 text-xs text-green-800">
             <CheckCircle2 className="h-3.5 w-3.5" />
             {result.tieBreakPolicy.status === "approved"
               ? "Organizer-approved tie-break policy active"
@@ -104,11 +104,11 @@ export default function Home() {
               <p>No scores submitted yet.</p>
             </div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-border">
               {sortedEntries.map((entry) => (
                 <div 
                   key={entry.schoolCode} 
-                  className={`p-5 flex items-center justify-between transition-colors hover:bg-white/5 ${entry.rank === 1 ? 'bg-primary/5' : ''}`}
+                  className={`p-5 flex items-center justify-between transition-colors hover:bg-accent/70 ${entry.rank === 1 ? 'bg-primary/5' : ''}`}
                   data-testid={`row-dashboard-${result.category}-${entry.schoolCode}`}
                 >
                   <div className="flex items-center gap-5">
@@ -116,11 +116,11 @@ export default function Home() {
                       {renderRankBadge(entry.rank, entry.missingJudgeCount)}
                     </div>
                     <div>
-                      <h4 className={`font-bold font-serif ${entry.rank === 1 ? 'text-2xl text-white' : 'text-lg text-white/90'}`}>
+                        <h4 className={`font-bold font-serif ${entry.rank === 1 ? 'text-2xl text-foreground' : 'text-lg text-foreground'}`}>
                         {entry.schoolName}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-white/50 bg-white/5 px-2 py-0.5 rounded-sm border border-white/10">
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-sm border border-border">
                           Entry #{entry.entryNo}
                         </span>
                         {entry.award && (
@@ -130,7 +130,7 @@ export default function Home() {
                         )}
                         {entry.tieBreakApplied && (
                           <span
-                            className="text-xs text-amber-300/80"
+                            className="text-xs text-amber-800"
                             title={entry.tieBreakReason ?? undefined}
                           >
                             Tie-break applied
@@ -141,16 +141,16 @@ export default function Home() {
                   </div>
                   
                   <div className="text-right">
-                    <div className={`font-bold font-mono tracking-tighter ${entry.rank === 1 ? 'text-3xl text-primary' : entry.isComplete ? 'text-2xl text-white/90' : 'text-2xl text-white/40'}`}>
+                      <div className={`font-bold font-mono tracking-tighter ${entry.rank === 1 ? 'text-3xl text-primary' : entry.isComplete ? 'text-2xl text-foreground' : 'text-2xl text-muted-foreground'}`}>
                       {entry.judgeCount > 0 ? entry.avgTotalScore.toFixed(2) : "—"}
                     </div>
                     {!entry.isComplete && entry.judgeCount > 0 && (
-                      <div className="text-[10px] uppercase tracking-wider text-white/35">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                         Provisional · {entry.judgeCount}/{result.requiredJudgeCount} judges
                       </div>
                     )}
                     {entry.isComplete && entry.prizeAmount && (
-                      <div className="text-xs text-green-400 font-medium mt-1">
+                       <div className="text-xs text-green-700 font-medium mt-1">
                         ₱{entry.prizeAmount}
                       </div>
                     )}
@@ -167,11 +167,11 @@ export default function Home() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-500">
       <div className="text-center space-y-4 mb-10">
-        <h1 className="text-4xl md:text-6xl font-black font-serif text-white tracking-tight drop-shadow-lg">
+        <h1 className="text-4xl md:text-6xl font-black font-serif text-foreground tracking-tight">
           <span className="text-primary block mb-2">TAGOBTOB</span>
           Live Tabulation Dashboard
         </h1>
-        <p className="text-lg text-white/60 max-w-2xl mx-auto">
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
           Paindigay nan Majorette ug Twirlers Competition
         </p>
       </div>

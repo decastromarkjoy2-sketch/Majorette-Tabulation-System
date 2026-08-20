@@ -62,13 +62,13 @@ export default function SoloTabulation() {
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight flex items-center gap-3">
             <User className="h-8 w-8 text-secondary" />
             Solo (Mother Majorette) Tabulation
           </h1>
           <p className="text-muted-foreground mt-1">Three-judge average, deductions, and automatic awards</p>
         </div>
-        <div className="flex gap-4 text-sm text-white/60 bg-black/40 px-4 py-2 rounded-lg border border-white/5">
+        <div className="flex gap-4 text-sm text-muted-foreground bg-card px-4 py-2 rounded-lg border border-border shadow-sm">
           <span className="flex items-center gap-2"><User className="h-4 w-4" /> {tabulation.totalJudges}/{tabulation.requiredJudgeCount} Judges Registered</span>
           <span className="flex items-center gap-2"><FileCheck className="h-4 w-4" /> {tabulation.totalScoresSubmitted} Scores Logged</span>
         </div>
@@ -77,12 +77,12 @@ export default function SoloTabulation() {
       <div
         className={`rounded-lg border px-4 py-3 text-sm ${
           allEntriesComplete
-            ? "border-green-500/20 bg-green-500/5 text-green-300"
-            : "border-secondary/20 bg-secondary/5 text-white/70"
+            ? "border-green-700/30 bg-green-50 text-green-800"
+            : "border-secondary/30 bg-secondary/5 text-foreground/80"
         }`}
         data-testid="status-solo-completion"
       >
-        <span className="font-bold text-white">
+        <span className="font-bold text-foreground">
           {completedEntries.length}/{sortedEntries.length} entries fully judged.
         </span>{" "}
         {allEntriesComplete
@@ -93,19 +93,19 @@ export default function SoloTabulation() {
       <Card className="border-secondary/20 bg-secondary/5" data-testid="card-solo-tie-break-policy">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-300" />
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-700" />
             <div className="space-y-2 text-sm">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-bold text-white">{tabulation.tieBreakPolicy.title}</h2>
-                <Badge className="border-green-500/30 bg-green-500/10 text-green-300">
+                <h2 className="font-bold text-foreground">{tabulation.tieBreakPolicy.title}</h2>
+                <Badge className="border-green-700/30 bg-green-50 text-green-800">
                   {tabulation.tieBreakPolicy.status}
                 </Badge>
               </div>
-              <p className="text-white/65">{tabulation.tieBreakPolicy.description}</p>
-              <ol className="list-decimal space-y-1 pl-5 text-white/55">
+              <p className="text-foreground/80">{tabulation.tieBreakPolicy.description}</p>
+              <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
                 {tabulation.tieBreakPolicy.steps.map((step) => <li key={step}>{step}</li>)}
               </ol>
-              <p className="text-xs text-white/45">Approved by {tabulation.tieBreakPolicy.approvedBy}.</p>
+              <p className="text-xs text-muted-foreground">Approved by {tabulation.tieBreakPolicy.approvedBy}.</p>
             </div>
           </div>
         </CardContent>
@@ -134,17 +134,17 @@ export default function SoloTabulation() {
                         </Badge>
                       )}
                     </div>
-                    <div className="font-serif text-xl font-bold text-white">
+                    <div className="font-serif text-xl font-bold text-foreground">
                       {entry.schoolName}
                     </div>
-                    <div className="text-xs text-white/45">Entry {entry.entryNo}</div>
+                    <div className="text-xs text-muted-foreground">Entry {entry.entryNo}</div>
                   </div>
                   <div className="text-right">
                     <div className="font-mono text-2xl font-black text-secondary">
                       {entry.avgTotalScore.toFixed(2)}
                     </div>
                     {entry.prizeAmount && (
-                      <div className="text-xs font-bold text-green-400">
+                      <div className="text-xs font-bold text-green-700">
                         ₱{entry.prizeAmount}
                       </div>
                     )}
@@ -156,7 +156,7 @@ export default function SoloTabulation() {
         </div>
       )}
 
-      <Card className="border-secondary/20 bg-black/40 shadow-2xl overflow-hidden">
+      <Card className="border-secondary/30 bg-card shadow-md overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table className="border-0">
@@ -177,32 +177,32 @@ export default function SoloTabulation() {
                   {sortedEntries.map((entry) => (
                     <TableRow 
                       key={entry.schoolCode} 
-                      className={`border-white/5 group transition-colors hover:bg-white/5 ${entry.rank === 1 ? 'bg-secondary/5' : ''}`}
+                      className={`border-border group transition-colors hover:bg-accent/70 ${entry.rank === 1 ? 'bg-secondary/5' : ''}`}
                       data-testid={`row-solo-entry-${entry.schoolCode}`}
                     >
                       <TableCell className="font-bold text-xl">{entry.rank ?? "—"}</TableCell>
                       <TableCell>
-                        <div className="font-serif font-bold text-lg text-white group-hover:text-secondary transition-colors">
+                        <div className="font-serif font-bold text-lg text-foreground group-hover:text-secondary transition-colors">
                           {entry.schoolName}
                         </div>
-                        <div className="text-xs text-white/50 font-mono mt-0.5">Code: {entry.schoolCode} • Entry: {entry.entryNo}</div>
+                        <div className="text-xs text-muted-foreground font-mono mt-0.5">Code: {entry.schoolCode} • Entry: {entry.entryNo}</div>
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge
                           variant="outline"
-                          className={entry.isComplete ? "border-green-500/30 bg-green-500/10 text-green-300" : "bg-black/50"}
+                          className={entry.isComplete ? "border-green-700/30 bg-green-50 text-green-800" : "bg-muted text-muted-foreground"}
                         >
                           {entry.judgeCount}/{tabulation.requiredJudgeCount}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-white/80">{entry.judgeCount > 0 ? entry.avgCriterion1.toFixed(2) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-white/80">{entry.judgeCount > 0 ? entry.avgCriterion2.toFixed(2) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-white/80">{entry.judgeCount > 0 ? entry.avgCriterion3.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? entry.avgCriterion1.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? entry.avgCriterion2.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? entry.avgCriterion3.toFixed(2) : "—"}</TableCell>
                       <TableCell className="text-right font-mono text-destructive">{entry.judgeCount > 0 ? entry.avgDeduction.toFixed(2) : "—"}</TableCell>
-                      <TableCell className={`text-right font-mono font-black text-2xl tracking-tighter ${entry.isComplete ? "text-secondary" : "text-white/40"}`}>
+                      <TableCell className={`text-right font-mono font-black text-2xl tracking-tighter ${entry.isComplete ? "text-secondary" : "text-muted-foreground"}`}>
                         {entry.judgeCount > 0 ? entry.avgTotalScore.toFixed(2) : "—"}
                         {!entry.isComplete && entry.judgeCount > 0 && (
-                          <span className="block text-[10px] font-sans uppercase tracking-wider text-white/35">
+                          <span className="block text-[10px] font-sans uppercase tracking-wider text-muted-foreground">
                             Provisional
                           </span>
                         )}
@@ -216,19 +216,19 @@ export default function SoloTabulation() {
                                  <Badge
                                    variant="outline"
                                    title={entry.tieBreakReason ?? undefined}
-                                   className="whitespace-nowrap text-amber-300"
+                                    className="whitespace-nowrap text-amber-800"
                                  >
                                    Tie-break applied
                                  </Badge>
                                )}
                              </div>
                           ) : (
-                            <Badge variant="outline" className="whitespace-nowrap text-white/50">
+                            <Badge variant="outline" className="whitespace-nowrap text-muted-foreground">
                               Awaiting {entry.missingJudgeCount} judge{entry.missingJudgeCount === 1 ? "" : "s"}
                             </Badge>
                           )}
                           {entry.isComplete && entry.prizeAmount && (
-                            <span className="text-xs font-bold text-green-400">₱{entry.prizeAmount}</span>
+                            <span className="text-xs font-bold text-green-700">₱{entry.prizeAmount}</span>
                           )}
                         </div>
                       </TableCell>

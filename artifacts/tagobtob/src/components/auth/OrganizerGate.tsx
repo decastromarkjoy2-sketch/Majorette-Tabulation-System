@@ -51,7 +51,7 @@ export function OrganizerGate({
 
   if (session?.role !== "organizer") {
     return (
-      <Card className="mx-auto max-w-md border-primary/20 bg-black/40">
+      <Card className="mx-auto max-w-md border-primary/30 bg-card shadow-sm">
         <CardHeader>
           <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10">
             <KeyRound className="h-5 w-5 text-primary" />
@@ -104,8 +104,8 @@ export function OrganizerGate({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
-        <span className="flex items-center gap-2 text-sm font-semibold text-green-300">
+      <div className="flex items-center justify-between rounded-lg border border-green-700/30 bg-green-50 px-4 py-3">
+        <span className="flex items-center gap-2 text-sm font-semibold text-green-800">
           <ShieldCheck className="h-4 w-4" />
           Organizer tools unlocked
         </span>

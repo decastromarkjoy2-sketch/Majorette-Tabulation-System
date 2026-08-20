@@ -219,7 +219,7 @@ export default function ScoreEntry() {
     <>
       <div className="score-entry-screen max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-serif font-bold text-white tracking-tight flex items-center gap-3">
+        <h1 className="text-3xl font-serif font-bold text-foreground tracking-tight flex items-center gap-3">
           <ClipboardCheck className="h-8 w-8 text-primary" />
           Score Entry Portal
         </h1>
@@ -229,8 +229,8 @@ export default function ScoreEntry() {
       <div
         className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
           rosterReady
-            ? "border-green-500/20 bg-green-500/5 text-green-300"
-            : "border-amber-500/20 bg-amber-500/5 text-amber-200"
+            ? "border-green-700/30 bg-green-50 text-green-800"
+            : "border-amber-700/30 bg-amber-50 text-amber-900"
         }`}
         data-testid="status-score-roster"
       >
@@ -245,14 +245,14 @@ export default function ScoreEntry() {
               ? "Three-judge panel ready"
               : `Scoring locked: ${judges?.length ?? 0}/${REQUIRED_JUDGE_COUNT} judges registered`}
           </p>
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-muted-foreground">
             Each judge may submit one score per school in each category.
           </p>
         </div>
       </div>
 
       {session?.role !== "judge" ? (
-        <Card className="border-primary/20 bg-black/40">
+        <Card className="border-primary/30 bg-card shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" />
@@ -277,7 +277,7 @@ export default function ScoreEntry() {
                   <Label htmlFor="judge-identity">Judge name</Label>
                   <select
                     id="judge-identity"
-                    className="flex h-11 w-full rounded-md border border-white/10 bg-black/60 px-3 py-2 text-white"
+                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-foreground"
                     value={judgeId}
                     onChange={(event) => setJudgeId(event.target.value)}
                     disabled={loadingJudges || !rosterReady || createJudgeSession.isPending}
@@ -326,12 +326,12 @@ export default function ScoreEntry() {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex items-center justify-between rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
+        <div className="flex items-center justify-between rounded-lg border border-green-700/30 bg-green-50 px-4 py-3">
           <div>
-            <p className="font-semibold text-green-300" data-testid="text-signed-in-judge">
+            <p className="font-semibold text-green-800" data-testid="text-signed-in-judge">
               Signed in as {selectedJudge?.name ?? "judge"}
             </p>
-            <p className="text-xs text-white/50">Scores will be recorded only under this identity.</p>
+            <p className="text-xs text-muted-foreground">Scores will be recorded only under this identity.</p>
           </div>
           <Button
             type="button"
@@ -350,10 +350,10 @@ export default function ScoreEntry() {
       <form onSubmit={handleSubmit}>
         <Card className="border-primary/20 bg-card overflow-hidden">
           {/* Identity Section */}
-          <div className="bg-black/40 p-6 border-b border-white/5 space-y-6">
+          <div className="bg-muted/45 p-6 border-b border-border space-y-6">
             <div>
               <div className="space-y-3">
-                <Label className="text-white/80 uppercase tracking-wider text-xs font-bold">2. Category</Label>
+                <Label className="text-foreground/80 uppercase tracking-wider text-xs font-bold">2. Category</Label>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -365,7 +365,7 @@ export default function ScoreEntry() {
                     className={`flex-1 h-12 rounded-md font-semibold transition-all ${
                       category === "group" 
                         ? "bg-primary text-primary-foreground shadow-[0_0_15px_-3px_hsl(var(--primary)_/_0.4)]" 
-                        : "bg-black/50 text-white/60 hover:bg-white/10 border border-white/5"
+                          : "bg-background text-muted-foreground hover:bg-accent border border-border"
                     }`}
                   >
                     GROUP
@@ -380,7 +380,7 @@ export default function ScoreEntry() {
                     className={`flex-1 h-12 rounded-md font-semibold transition-all ${
                       category === "solo" 
                         ? "bg-primary text-primary-foreground shadow-[0_0_15px_-3px_hsl(var(--primary)_/_0.4)]" 
-                        : "bg-black/50 text-white/60 hover:bg-white/10 border border-white/5"
+                          : "bg-background text-muted-foreground hover:bg-accent border border-border"
                     }`}
                   >
                     SOLO (Mother Majorette)
@@ -390,7 +390,7 @@ export default function ScoreEntry() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-white/80 uppercase tracking-wider text-xs font-bold">3. Select School / Entry</Label>
+              <Label className="text-foreground/80 uppercase tracking-wider text-xs font-bold">3. Select School / Entry</Label>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {SCHOOLS.map((school) => {
                   const alreadyScored = scoredSchoolCodes.has(school.code);
@@ -408,10 +408,10 @@ export default function ScoreEntry() {
                       data-testid={`button-school-${school.code}`}
                       className={`h-16 rounded-lg font-bold text-lg transition-all border ${
                         schoolCode === school.code
-                          ? "bg-white text-black border-white shadow-lg scale-105"
+                          ? "bg-foreground text-background border-foreground shadow-lg scale-105"
                           : alreadyScored
-                            ? "bg-green-500/10 text-green-300/70 border-green-500/20 cursor-not-allowed"
-                            : "bg-black/40 text-white/70 border-white/10 hover:bg-white/10 hover:border-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                            ? "bg-green-50 text-green-700 border-green-200 cursor-not-allowed"
+                            : "bg-background text-foreground/80 border-border hover:bg-accent hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed"
                       }`}
                     >
                       <span className="block">{school.name}</span>
@@ -425,7 +425,7 @@ export default function ScoreEntry() {
                 })}
               </div>
               {selectedJudgeId != null && (
-                <p className="text-xs text-white/45" data-testid="text-scoring-progress">
+                <p className="text-xs text-muted-foreground" data-testid="text-scoring-progress">
                   {scoredSchoolCodes.size}/5 entries scored by you in the {category} category.
                 </p>
               )}
@@ -433,8 +433,8 @@ export default function ScoreEntry() {
           </div>
 
           {/* Scoring Section */}
-          <div className="p-6 space-y-6 bg-gradient-to-b from-transparent to-black/20">
-            <Label className="text-white/80 uppercase tracking-wider text-xs font-bold flex items-center gap-2">
+          <div className="p-6 space-y-6 bg-gradient-to-b from-transparent to-muted/60">
+            <Label className="text-foreground/80 uppercase tracking-wider text-xs font-bold flex items-center gap-2">
               4. Enter Scores <Badge variant="outline" className="text-[10px] py-0">Max: 50 / 20 / 30</Badge>
             </Label>
             
@@ -444,9 +444,9 @@ export default function ScoreEntry() {
                 { state: c2, setter: setC2, crit: criteria[1] },
                 { state: c3, setter: setC3, crit: criteria[2] },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-4 bg-black/40 p-4 rounded-lg border border-white/5">
+                <div key={i} className="flex items-center gap-4 bg-background p-4 rounded-lg border border-border shadow-xs">
                   <div className="flex-1">
-                    <div className="font-semibold text-white/90">{item.crit.label}</div>
+                    <div className="font-semibold text-foreground">{item.crit.label}</div>
                     <div className="text-primary text-sm font-bold mt-1">Max Score: {item.crit.desc}</div>
                   </div>
                   <div className="w-32 relative">
@@ -458,7 +458,7 @@ export default function ScoreEntry() {
                       value={item.state}
                       onChange={(e) => item.setter(e.target.value)}
                       placeholder="0.0"
-                      className="text-right text-2xl font-mono h-14 bg-black border-white/20 text-white font-bold"
+                      className="text-right text-2xl font-mono h-14 bg-background border-input text-foreground font-bold"
                       data-testid={`input-score-criterion-${i + 1}`}
                     />
                   </div>
@@ -468,31 +468,31 @@ export default function ScoreEntry() {
 
             {/* Deductions */}
             <div className={`p-5 rounded-lg border transition-all ${
-              hasDeduction ? "bg-destructive/10 border-destructive/30" : "bg-black/40 border-white/5"
+              hasDeduction ? "bg-destructive/10 border-destructive/40" : "bg-muted/45 border-border"
             }`}>
               <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => setHasDeduction(!hasDeduction)}
                   className={`w-6 h-6 rounded flex items-center justify-center border ${
-                    hasDeduction ? "bg-destructive border-destructive text-white" : "border-white/30 bg-black"
+                    hasDeduction ? "bg-destructive border-destructive text-destructive-foreground" : "border-border bg-background"
                   }`}
                 >
                   {hasDeduction && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                 </button>
                 <div className="flex-1">
-                  <div className="font-bold text-white/90">Rule Violation Deductions</div>
+                  <div className="font-bold text-foreground">Rule Violation Deductions</div>
                   <div className="text-sm text-destructive font-medium mt-1">-10 points per violation</div>
                 </div>
                 {hasDeduction && (
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs text-white/70">Count:</Label>
+                    <Label className="text-xs text-muted-foreground">Count:</Label>
                     <Input
                       type="number"
                       min="1"
                       value={deductionCount}
                       onChange={(e) => setDeductionCount(e.target.value)}
-                      className="w-20 text-center font-mono h-10 border-destructive/50 bg-black/50"
+                      className="w-20 text-center font-mono h-10 border-destructive/50 bg-background"
                       data-testid="input-deduction-count"
                     />
                   </div>
@@ -501,13 +501,13 @@ export default function ScoreEntry() {
             </div>
           </div>
 
-          <CardFooter className="bg-black/60 p-6 border-t border-white/10 flex flex-col gap-6 items-stretch">
+          <CardFooter className="bg-muted/55 p-6 border-t border-border flex flex-col gap-6 items-stretch">
             <div className="flex items-center gap-4 w-full">
               <div className="p-3 bg-primary/10 rounded-full">
                 <Calculator className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <div className="text-sm text-white/60 uppercase tracking-widest font-bold">Live Total Score</div>
+                <div className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Live Total Score</div>
                 <div className="text-4xl font-mono font-black text-primary tracking-tighter">
                   <span data-testid="text-live-total">
                   {totalScore.toFixed(2)}
