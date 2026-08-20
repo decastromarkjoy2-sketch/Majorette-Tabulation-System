@@ -1,4 +1,4 @@
-import { formatTabulationScore } from "@/lib/score-format";
+import { formatTabulationAverage, formatTabulationScore } from "@/lib/score-format";
 
 type OfficialResultEntry = {
   schoolName: string;
@@ -89,10 +89,10 @@ export function OfficialResultsPrintout({
                     <strong>{entry.schoolName}</strong>
                     <small>Code: {entry.schoolCode} · Entry: {entry.entryNo}</small>
                   </td>
-                  <td>{formatTabulationScore(entry.avgCriterion1)}</td>
-                  <td>{formatTabulationScore(entry.avgCriterion2)}</td>
-                  <td>{formatTabulationScore(entry.avgCriterion3)}</td>
-                  <td>{formatTabulationScore(entry.avgDeduction)}</td>
+                  <td>{formatTabulationAverage(entry.avgCriterion1)}</td>
+                  <td>{formatTabulationAverage(entry.avgCriterion2)}</td>
+                  <td>{formatTabulationAverage(entry.avgCriterion3)}</td>
+                  <td>{formatTabulationAverage(entry.avgDeduction)}</td>
                   <td><strong>{formatTabulationScore(entry.avgTotalScore)}</strong></td>
                   <td>{formatPrize(entry.prizeAmount)}</td>
                 </tr>

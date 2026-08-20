@@ -81,6 +81,7 @@ export default function ScoreEntry() {
 
   const criteria = category === "group" ? GROUP_CRITERIA : SOLO_CRITERIA;
   const rosterReady = judges?.length === REQUIRED_JUDGE_COUNT;
+  const printableJudges = judges?.slice(0, REQUIRED_JUDGE_COUNT) ?? [];
   const selectedJudgeId =
     session?.role === "judge" && session.judgeId != null ? session.judgeId : undefined;
   const selectedJudge = judges?.find((judge) => judge.id === selectedJudgeId);
@@ -523,10 +524,12 @@ export default function ScoreEntry() {
                size="lg"
                className="w-full min-w-0 px-3 text-sm uppercase tracking-wide sm:text-base"
                onClick={() => window.print()}
+                disabled={loadingJudges || !rosterReady}
+                title={!rosterReady ? "Register all three judges before printing the batch." : undefined}
                data-testid="button-print-blank-score-form"
              >
                <Printer className="mr-2 h-5 w-5" />
-               Print Blank Score Form
+                Print 3 Blank Score Forms
              </Button>
              <Button 
               type="submit"
@@ -544,7 +547,13 @@ export default function ScoreEntry() {
       </form>
       </div>
 
-      <section className="print-blank-score-form" aria-label="Printable blank score form">
+      {printableJudges.map((judge) => (
+      <section
+        key={judge.id}
+        className="print-blank-score-form"
+        aria-label={`Printable blank score form for ${judge.name}`}
+        data-testid={`print-blank-score-form-${judge.id}`}
+      >
         <header className="print-blank-score-form__header">
           <p className="print-blank-score-form__eyebrow">POWER OUTAGE BACKUP — MANUAL SCORING FORM</p>
           <h1>TAGOBTOB: Indigay nan Majorette ug Twirlers</h1>
@@ -561,7 +570,7 @@ export default function ScoreEntry() {
           </div>
           <div className="print-blank-score-form__field">
             <span className="print-blank-score-form__label">Judge Name</span>
-            <span className="print-blank-score-form__blank-line" />
+            <span className="print-blank-score-form__prefilled-line">{judge.name}</span>
           </div>
           <div className="print-blank-score-form__field print-blank-score-form__field--school">
             <span className="print-blank-score-form__label">School / Entry — check one</span>
@@ -649,6 +658,7 @@ export default function ScoreEntry() {
           </div>
         </div>
       </section>
+      ))}
     </>
   );
 }

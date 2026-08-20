@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, Trophy, Users, FileCheck, Printer } from "lucide-react";
 import { OfficialResultsPrintout } from "@/components/printing/OfficialResultsPrintout";
-import { formatTabulationScore } from "@/lib/score-format";
+import { formatTabulationAverage, formatTabulationScore } from "@/lib/score-format";
 
 export default function GroupTabulation() {
   const { data: tabulation, isLoading, error } = useGetGroupTabulation({
@@ -207,10 +207,10 @@ export default function GroupTabulation() {
                           {entry.judgeCount}/{tabulation.requiredJudgeCount}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgCriterion1) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgCriterion2) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgCriterion3) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-destructive">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgDeduction) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationAverage(entry.avgCriterion1) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationAverage(entry.avgCriterion2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationAverage(entry.avgCriterion3) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-destructive">{entry.judgeCount > 0 ? formatTabulationAverage(entry.avgDeduction) : "—"}</TableCell>
                       <TableCell className={`text-right font-mono font-black text-2xl tracking-tighter ${entry.isComplete ? "text-primary" : "text-muted-foreground"}`}>
                         {entry.judgeCount > 0 ? formatTabulationScore(entry.avgTotalScore) : "—"}
                         {!entry.isComplete && entry.judgeCount > 0 && (

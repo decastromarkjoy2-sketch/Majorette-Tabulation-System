@@ -205,12 +205,20 @@
 
   .print-blank-score-form {
     display: block !important;
-    position: absolute;
-    inset: 0;
+    position: relative;
     width: 100%;
+    min-height: calc(297mm - 32mm);
+    box-sizing: border-box;
     color: #111;
     background: #fff;
     font-family: Arial, Helvetica, sans-serif;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-blank-score-form + .print-blank-score-form {
+    break-before: page;
+    page-break-before: always;
   }
 
   .print-official-results {
@@ -585,6 +593,14 @@
     display: block;
     min-height: 22px;
     border-bottom: 1px solid #111;
+  }
+
+  .print-blank-score-form__prefilled-line {
+    display: block;
+    min-height: 22px;
+    border-bottom: 1px solid #111;
+    font-size: 13px;
+    font-weight: 700;
   }
 
   .print-blank-score-form__options,
