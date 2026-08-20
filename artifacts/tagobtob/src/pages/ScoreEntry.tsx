@@ -603,7 +603,7 @@ export default function ScoreEntry() {
       >
         <header className="print-blank-score-form__header">
           <p className="print-blank-score-form__eyebrow">POWER OUTAGE BACKUP — MANUAL SCORING FORM</p>
-          <h1>TAGOBTOB: Indigay nan Majorette ug Twirlers</h1>
+          <h1>TAGOBTOB: Indigay nan mga Majorette sanan mga Twirlers</h1>
           <p>Write clearly in ink. Use one form for one school entry.</p>
         </header>
 

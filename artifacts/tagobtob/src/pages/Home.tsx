@@ -172,7 +172,7 @@ export default function Home() {
           Live Tabulation Dashboard
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Paindigay nan Majorette ug Twirlers Competition
+          Indigay nan mga Majorette sanan mga Twirlers Competition
         </p>
       </div>
 

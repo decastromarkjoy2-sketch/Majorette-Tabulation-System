@@ -23,7 +23,7 @@ export function JudgeLogPrintout({ judgeName, scores, active }: JudgeLogPrintout
     <section className={`print-judge-log${active ? " print-judge-log--active" : ""}`} aria-hidden="true">
       <header className="print-judge-log__header">
         <p className="print-judge-log__eyebrow">OFFICIAL SCORECARD HISTORY</p>
-        <h1>TAGOBTOB: Paindigay nan Majorette ug Twirlers</h1>
+          <h1>TAGOBTOB: Indigay nan mga Majorette sanan mga Twirlers</h1>
         <h2>Judge Log: {judgeName}</h2>
         <p>Submitted scores recorded under the server-controlled judge session.</p>
       </header>

@@ -34,7 +34,7 @@ export function OfficialResultsPrintout({
     <section className="print-official-results" aria-hidden="true">
       <header className="print-official-results__header">
         <p className="print-official-results__eyebrow">OFFICIAL COMPETITION RESULTS</p>
-        <h1>TAGOBTOB: Paindigay nan Majorette ug Twirlers</h1>
+        <h1>TAGOBTOB: Indigay nan mga Majorette sanan mga Twirlers</h1>
         <h2>{category}</h2>
         <p>Official results based on the three-judge average, deductions, and approved tie-break policy.</p>
       </header>
