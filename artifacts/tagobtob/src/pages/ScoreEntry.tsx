@@ -43,6 +43,18 @@ const SOLO_CRITERIA = [
   { id: 3, label: "Showmanship, Presentation & Routine Structure", max: 30, desc: "30 pts" },
 ];
 
+const BLANK_GROUP_CRITERIA = [
+  { label: "Twirling Variety & Difficulty", weight: "50%" },
+  { label: "Precision & Timing", weight: "20%" },
+  { label: "Choreography & Synchronization", weight: "30%" },
+];
+
+const BLANK_SOLO_CRITERIA = [
+  { label: "Baton Difficulty/Speed", weight: "50%" },
+  { label: "Body Technique", weight: "20%" },
+  { label: "Showmanship", weight: "30%" },
+];
+
 const REQUIRED_JUDGE_COUNT = 3;
 
 export default function ScoreEntry() {
@@ -92,7 +104,6 @@ export default function ScoreEntry() {
   const selectedSchoolAlreadyScored = schoolCode
     ? scoredSchoolCodes.has(schoolCode)
     : false;
-  const selectedSchool = SCHOOLS.find((school) => school.code === schoolCode);
 
   const { totalScore, isValid } = useMemo(() => {
     const v1 = parseFloat(c1) || 0;
@@ -511,12 +522,11 @@ export default function ScoreEntry() {
                variant="outline"
                size="xl"
                className="w-full md:w-auto"
-               disabled={selectedJudgeId == null || !schoolCode}
                onClick={() => window.print()}
-               data-testid="button-print-score-sheet"
+               data-testid="button-print-blank-score-form"
              >
                <Printer className="mr-2 h-5 w-5" />
-               Print Score Sheet
+               Print Blank Score Form
              </Button>
              <Button 
               type="submit"
@@ -534,72 +544,108 @@ export default function ScoreEntry() {
       </form>
       </div>
 
-      <section className="print-score-sheet" aria-label="Printable score sheet">
-        <header className="print-score-sheet__header">
-          <p className="print-score-sheet__eyebrow">OFFICIAL JUDGING FORM</p>
-          <h1>TAGOBTOB: Paindigay nan Majorette ug Twirlers</h1>
-          <p className="print-score-sheet__category">
-            {category === "group" ? "Group Category" : "Solo / Mother Majorette Category"}
-          </p>
+      <section className="print-blank-score-form" aria-label="Printable blank score form">
+        <header className="print-blank-score-form__header">
+          <p className="print-blank-score-form__eyebrow">POWER OUTAGE BACKUP — MANUAL SCORING FORM</p>
+          <h1>TAGOBTOB: Indigay nan Majorette ug Twirlers</h1>
+          <p>Write clearly in ink. Use one form for one school entry.</p>
         </header>
 
-        <div className="print-score-sheet__details">
-          <div>
-            <span className="print-score-sheet__label">Judge</span>
-            <strong>{selectedJudge?.name ?? "________________________________"}</strong>
+        <div className="print-blank-score-form__identity">
+          <div className="print-blank-score-form__field print-blank-score-form__field--category">
+            <span className="print-blank-score-form__label">Category</span>
+            <div className="print-blank-score-form__options">
+              <span><span className="print-blank-score-form__checkbox" /> Group</span>
+              <span><span className="print-blank-score-form__checkbox" /> Solo</span>
+            </div>
           </div>
-          <div>
-            <span className="print-score-sheet__label">School / Entry</span>
-            <strong>
-              {selectedSchool ? `${selectedSchool.name} (${selectedSchool.code})` : "________________________________"}
-            </strong>
+          <div className="print-blank-score-form__field">
+            <span className="print-blank-score-form__label">Judge Name</span>
+            <span className="print-blank-score-form__blank-line" />
           </div>
-          <div>
-            <span className="print-score-sheet__label">Category</span>
-            <strong>{category === "group" ? "GROUP" : "SOLO (Mother Majorette)"}</strong>
+          <div className="print-blank-score-form__field print-blank-score-form__field--school">
+            <span className="print-blank-score-form__label">School / Entry — check one</span>
+            <div className="print-blank-score-form__school-options">
+              {SCHOOLS.map((school) => (
+                <span key={school.code}>
+                  <span className="print-blank-score-form__checkbox" /> {school.name}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        <table className="print-score-sheet__criteria">
-          <thead>
-            <tr>
-              <th scope="col">Criteria</th>
-              <th scope="col">Weight</th>
-              <th scope="col">Judge's Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {criteria.map((criterion) => (
-              <tr key={criterion.id}>
-                <td>{criterion.label}</td>
-                <td>{criterion.max}%</td>
-                <td className="print-score-sheet__score-cell">
-                  {criterion.id === 1 && c1 ? c1 : criterion.id === 2 && c2 ? c2 : criterion.id === 3 && c3 ? c3 : ""}
-                </td>
-              </tr>
-            ))}
-            <tr className="print-score-sheet__total-row">
-              <td>Total Score</td>
-              <td>100%</td>
-              <td>{c1 || c2 || c3 ? totalScore.toFixed(2) : ""}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div className="print-score-sheet__violations">
-          <strong>Rule violations / deductions:</strong>
-          <span>{hasDeduction ? `${deductionCount} violation${deductionCount === "1" ? "" : "s"} (-${parseInt(deductionCount, 10) * 10} points)` : ""}</span>
-        </div>
-        <div className="print-score-sheet__line" />
-
-        <div className="print-score-sheet__signatures">
+        <div className="print-blank-score-form__tables">
           <div>
-            <span>Judge's Signature</span>
-            <div className="print-score-sheet__signature-line" />
+            <h2>GROUP CATEGORY</h2>
+            <table className="print-blank-score-form__criteria">
+              <thead>
+                <tr>
+                  <th scope="col">Criteria</th>
+                  <th scope="col">Weight</th>
+                  <th scope="col">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {BLANK_GROUP_CRITERIA.map((criterion) => (
+                  <tr key={criterion.label}>
+                    <td>{criterion.label}</td>
+                    <td>{criterion.weight}</td>
+                    <td />
+                  </tr>
+                ))}
+                <tr className="print-blank-score-form__total-row">
+                  <td>Final Total Score</td>
+                  <td>100%</td>
+                  <td />
+                </tr>
+              </tbody>
+            </table>
           </div>
+
           <div>
-            <span>Date</span>
-            <div className="print-score-sheet__signature-line" />
+            <h2>SOLO CATEGORY</h2>
+            <table className="print-blank-score-form__criteria">
+              <thead>
+                <tr>
+                  <th scope="col">Criteria</th>
+                  <th scope="col">Weight</th>
+                  <th scope="col">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {BLANK_SOLO_CRITERIA.map((criterion) => (
+                  <tr key={criterion.label}>
+                    <td>{criterion.label}</td>
+                    <td>{criterion.weight}</td>
+                    <td />
+                  </tr>
+                ))}
+                <tr className="print-blank-score-form__total-row">
+                  <td>Final Total Score</td>
+                  <td>100%</td>
+                  <td />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="print-blank-score-form__deduction">
+          <span className="print-blank-score-form__checkbox" />
+          <strong>Rule Violation (-10 points)</strong>
+          <span className="print-blank-score-form__deduction-count">Number of violations: __________</span>
+        </div>
+
+        <div className="print-blank-score-form__footer">
+          <div className="print-blank-score-form__final-total">
+            <strong>FINAL TOTAL SCORE</strong>
+            <span />
+          </div>
+          <div className="print-blank-score-form__signature-box">
+            <strong>JUDGE'S SIGNATURE</strong>
+            <span />
+            <small>Signature over printed name</small>
           </div>
         </div>
       </section>

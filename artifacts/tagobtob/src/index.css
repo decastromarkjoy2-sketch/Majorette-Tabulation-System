@@ -166,7 +166,7 @@
   }
 }
 
-.print-score-sheet {
+.print-blank-score-form {
   display: none;
 }
 
@@ -186,12 +186,12 @@
     visibility: hidden !important;
   }
 
-  .print-score-sheet,
-  .print-score-sheet * {
+  .print-blank-score-form,
+  .print-blank-score-form * {
     visibility: visible !important;
   }
 
-  .print-score-sheet {
+  .print-blank-score-form {
     display: block !important;
     position: absolute;
     inset: 0;
@@ -201,131 +201,186 @@
     font-family: Arial, Helvetica, sans-serif;
   }
 
-  .print-score-sheet__header {
+  .print-blank-score-form__header {
     border-bottom: 2px solid #111;
     padding-bottom: 12px;
     text-align: center;
   }
 
-  .print-score-sheet__eyebrow {
+  .print-blank-score-form__eyebrow {
     margin: 0 0 8px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.18em;
   }
 
-  .print-score-sheet__header h1 {
+  .print-blank-score-form__header h1 {
     margin: 0;
     font-family: Georgia, "Times New Roman", serif;
     font-size: 22px;
     line-height: 1.2;
   }
 
-  .print-score-sheet__category {
+  .print-blank-score-form__header p:last-child {
     margin: 8px 0 0;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 11px;
   }
 
-  .print-score-sheet__details {
+  .print-blank-score-form__identity {
     display: grid;
-    grid-template-columns: 1fr 1.4fr;
-    gap: 18px 32px;
-    margin: 24px 0;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: 16px 28px;
+    margin: 20px 0;
   }
 
-  .print-score-sheet__details > div:last-child {
+  .print-blank-score-form__field--school {
     grid-column: 1 / -1;
   }
 
-  .print-score-sheet__details > div {
+  .print-blank-score-form__field {
     display: flex;
     flex-direction: column;
     gap: 5px;
   }
 
-  .print-score-sheet__label {
+  .print-blank-score-form__label {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  .print-score-sheet__details strong {
+  .print-blank-score-form__blank-line {
+    display: block;
     min-height: 22px;
     border-bottom: 1px solid #111;
-    font-size: 14px;
-    font-weight: 400;
   }
 
-  .print-score-sheet__criteria {
-    width: 100%;
-    border-collapse: collapse;
+  .print-blank-score-form__options,
+  .print-blank-score-form__school-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    min-height: 22px;
+    align-items: center;
     font-size: 13px;
   }
 
-  .print-score-sheet__criteria th,
-  .print-score-sheet__criteria td {
+  .print-blank-score-form__school-options {
+    gap: 12px 22px;
+  }
+
+  .print-blank-score-form__checkbox {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    margin-right: 4px;
     border: 1px solid #111;
-    padding: 11px 12px;
+    vertical-align: -2px;
+  }
+
+  .print-blank-score-form__tables {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .print-blank-score-form__tables h2 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+
+  .print-blank-score-form__criteria {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .print-blank-score-form__criteria th,
+  .print-blank-score-form__criteria td {
+    border: 1px solid #111;
+    height: 32px;
+    padding: 6px 7px;
     text-align: left;
   }
 
-  .print-score-sheet__criteria th {
+  .print-blank-score-form__criteria th {
     background: #eee;
-    font-size: 10px;
+    font-size: 9px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .print-score-sheet__criteria th:nth-child(2),
-  .print-score-sheet__criteria td:nth-child(2) {
+  .print-blank-score-form__criteria th:nth-child(2),
+  .print-blank-score-form__criteria td:nth-child(2) {
     width: 18%;
     text-align: center;
   }
 
-  .print-score-sheet__criteria th:nth-child(3),
-  .print-score-sheet__criteria td:nth-child(3) {
-    width: 25%;
+  .print-blank-score-form__criteria th:nth-child(3),
+  .print-blank-score-form__criteria td:nth-child(3) {
+    width: 22%;
     text-align: center;
   }
 
-  .print-score-sheet__score-cell {
-    height: 48px;
+  .print-blank-score-form__criteria td:nth-child(3) {
+    height: 42px;
   }
 
-  .print-score-sheet__total-row {
+  .print-blank-score-form__total-row {
     font-weight: 700;
   }
 
-  .print-score-sheet__violations {
+  .print-blank-score-form__deduction {
     display: flex;
+    align-items: center;
     gap: 10px;
-    margin-top: 28px;
-    font-size: 13px;
-  }
-
-  .print-score-sheet__violations span {
-    flex: 1;
-    min-height: 20px;
-    border-bottom: 1px solid #111;
-  }
-
-  .print-score-sheet__line {
-    min-height: 34px;
-    border-bottom: 1px solid #111;
-  }
-
-  .print-score-sheet__signatures {
-    display: grid;
-    grid-template-columns: 1fr 0.45fr;
-    gap: 42px;
-    margin-top: 64px;
+    margin-top: 18px;
     font-size: 12px;
   }
 
-  .print-score-sheet__signature-line {
+  .print-blank-score-form__deduction-count {
+    flex: 1;
+    text-align: right;
+  }
+
+  .print-blank-score-form__footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
     margin-top: 28px;
+    font-size: 12px;
+  }
+
+  .print-blank-score-form__final-total {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+  }
+
+  .print-blank-score-form__final-total span {
+    flex: 1;
+    min-height: 28px;
+    border-bottom: 2px solid #111;
+  }
+
+  .print-blank-score-form__signature-box {
+    min-height: 86px;
+    padding: 10px;
+    border: 1px solid #111;
+  }
+
+  .print-blank-score-form__signature-box > span {
+    display: block;
+    min-height: 32px;
+    margin-top: 12px;
     border-bottom: 1px solid #111;
+  }
+
+  .print-blank-score-form__signature-box small {
+    display: block;
+    margin-top: 5px;
+    font-size: 9px;
   }
 }
