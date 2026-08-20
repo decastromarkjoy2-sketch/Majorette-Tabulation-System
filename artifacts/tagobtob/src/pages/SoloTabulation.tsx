@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CheckCircle2, FileCheck, Trophy, User, Printer } from "lucide-react";
 import { OfficialResultsPrintout } from "@/components/printing/OfficialResultsPrintout";
+import { formatTabulationScore } from "@/lib/score-format";
 
 export default function SoloTabulation() {
   const { data: tabulation, isLoading, error } = useGetSoloTabulation({
@@ -152,7 +153,7 @@ export default function SoloTabulation() {
                   </div>
                   <div className="text-right">
                     <div className="font-mono text-2xl font-black text-secondary">
-                      {entry.avgTotalScore.toFixed(2)}
+                      {formatTabulationScore(entry.avgTotalScore)}
                     </div>
                     {entry.prizeAmount && (
                       <div className="text-xs font-bold text-green-700">
@@ -206,12 +207,12 @@ export default function SoloTabulation() {
                           {entry.judgeCount}/{tabulation.requiredJudgeCount}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? entry.avgCriterion1.toFixed(2) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? entry.avgCriterion2.toFixed(2) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? entry.avgCriterion3.toFixed(2) : "—"}</TableCell>
-                      <TableCell className="text-right font-mono text-destructive">{entry.judgeCount > 0 ? entry.avgDeduction.toFixed(2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgCriterion1) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgCriterion2) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-foreground/80">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgCriterion3) : "—"}</TableCell>
+                      <TableCell className="text-right font-mono text-destructive">{entry.judgeCount > 0 ? formatTabulationScore(entry.avgDeduction) : "—"}</TableCell>
                       <TableCell className={`text-right font-mono font-black text-2xl tracking-tighter ${entry.isComplete ? "text-secondary" : "text-muted-foreground"}`}>
-                        {entry.judgeCount > 0 ? entry.avgTotalScore.toFixed(2) : "—"}
+                        {entry.judgeCount > 0 ? formatTabulationScore(entry.avgTotalScore) : "—"}
                         {!entry.isComplete && entry.judgeCount > 0 && (
                           <span className="block text-[10px] font-sans uppercase tracking-wider text-muted-foreground">
                             Provisional

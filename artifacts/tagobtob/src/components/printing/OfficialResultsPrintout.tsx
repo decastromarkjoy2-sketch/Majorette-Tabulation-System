@@ -1,3 +1,5 @@
+import { formatTabulationScore } from "@/lib/score-format";
+
 type OfficialResultEntry = {
   schoolName: string;
   schoolCode: string;
@@ -48,7 +50,7 @@ export function OfficialResultsPrintout({
                   {entry.rank === 1 ? "ST" : entry.rank === 2 ? "ND" : entry.rank === 3 ? "RD" : "TH"} PLACE
                 </span>
                 <strong>{entry.schoolName}</strong>
-                <span>Final Score: {entry.avgTotalScore.toFixed(2)}</span>
+                <span>Final Score: {formatTabulationScore(entry.avgTotalScore)}</span>
                 <span>Prize: {formatPrize(entry.prizeAmount)}</span>
               </div>
             ))}
@@ -87,11 +89,11 @@ export function OfficialResultsPrintout({
                     <strong>{entry.schoolName}</strong>
                     <small>Code: {entry.schoolCode} · Entry: {entry.entryNo}</small>
                   </td>
-                  <td>{entry.avgCriterion1.toFixed(2)}</td>
-                  <td>{entry.avgCriterion2.toFixed(2)}</td>
-                  <td>{entry.avgCriterion3.toFixed(2)}</td>
-                  <td>{entry.avgDeduction.toFixed(2)}</td>
-                  <td><strong>{entry.avgTotalScore.toFixed(2)}</strong></td>
+                  <td>{formatTabulationScore(entry.avgCriterion1)}</td>
+                  <td>{formatTabulationScore(entry.avgCriterion2)}</td>
+                  <td>{formatTabulationScore(entry.avgCriterion3)}</td>
+                  <td>{formatTabulationScore(entry.avgDeduction)}</td>
+                  <td><strong>{formatTabulationScore(entry.avgTotalScore)}</strong></td>
                   <td>{formatPrize(entry.prizeAmount)}</td>
                 </tr>
               ))
