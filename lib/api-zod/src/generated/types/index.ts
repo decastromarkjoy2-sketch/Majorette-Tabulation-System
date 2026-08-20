@@ -8,6 +8,16 @@
 
 export * from './accessCodeInput';
 export * from './deleteResult';
+export * from './entryNumber';
+export * from './entryNumberAssignment';
+export * from './entryNumberAssignmentCategory';
+export * from './entryNumberAssignmentInput';
+export * from './entryNumberAssignmentInputCategory';
+export * from './entryNumberAssignmentInputMode';
+export * from './entryNumberAssignmentMode';
+export * from './entryNumberCategory';
+export * from './entryNumbers';
+export * from './entryNumberSchoolCode';
 export * from './errorResponse';
 export * from './healthStatus';
 export * from './judge';
@@ -29,3 +39,4 @@ export * from './tabulationResultCategory';
 export * from './tabulationSummary';
 export * from './tieBreakPolicy';
 export * from './tieBreakPolicyStatus';
+export * from './updateEntryNumberInput';

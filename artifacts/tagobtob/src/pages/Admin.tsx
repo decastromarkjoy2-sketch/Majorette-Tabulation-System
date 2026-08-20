@@ -2,13 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import {
   useListScores, 
   useDeleteScore,
-  getListScoresQueryKey
+  getListScoresQueryKey,
+  getGetGroupTabulationQueryKey,
+  getGetSoloTabulationQueryKey,
+  getGetTabulationSummaryQueryKey,
+  getListEntryNumbersQueryKey,
+  useListEntryNumbers,
+  useAssignEntryNumbers,
+  useUpdateEntryNumber,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Settings, Trash2, Printer, Users } from "lucide-react";
+import { Settings, Trash2, Printer, Users, Hash, ListOrdered, Shuffle, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { OrganizerGate } from "@/components/auth/OrganizerGate";
@@ -19,9 +26,89 @@ export default function Admin() {
   const { toast } = useToast();
   
   const { data: scores, isLoading } = useListScores();
+  const { data: entryNumbers, isLoading: loadingEntryNumbers } = useListEntryNumbers();
   const deleteScore = useDeleteScore();
+  const assignEntryNumbers = useAssignEntryNumbers();
+  const updateEntryNumber = useUpdateEntryNumber();
   const [selectedJudge, setSelectedJudge] = useState("all");
   const [printingJudge, setPrintingJudge] = useState<string | null>(null);
+  const [entryCategory, setEntryCategory] = useState<"group" | "solo">("group");
+  const [entryNumberDrafts, setEntryNumberDrafts] = useState<Record<string, string>>({});
+  const [entryNumberError, setEntryNumberError] = useState("");
+
+  const groupEntryNumbers = useMemo(
+    () => entryNumbers?.filter((entry) => entry.category === "group") ?? [],
+    [entryNumbers],
+  );
+  const soloEntryNumbers = useMemo(
+    () => entryNumbers?.filter((entry) => entry.category === "solo") ?? [],
+    [entryNumbers],
+  );
+  const selectedCategoryEntries = entryCategory === "group" ? groupEntryNumbers : soloEntryNumbers;
+
+  useEffect(() => {
+    setEntryNumberDrafts(
+      Object.fromEntries(
+        selectedCategoryEntries.map((entry) => [entry.schoolCode, entry.entryNo]),
+      ),
+    );
+    setEntryNumberError("");
+  }, [entryCategory, selectedCategoryEntries]);
+
+  const refreshEntryNumberConsumers = () => {
+    queryClient.invalidateQueries({ queryKey: getListEntryNumbersQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getListScoresQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetGroupTabulationQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetSoloTabulationQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetTabulationSummaryQueryKey() });
+  };
+
+  const handleAssign = (mode: "sequential" | "random") => {
+    setEntryNumberError("");
+    assignEntryNumbers.mutate(
+      { data: { category: entryCategory, mode } },
+      {
+        onSuccess: () => {
+          refreshEntryNumberConsumers();
+          toast({
+            title: mode === "sequential" ? "Numbers assigned in order" : "Numbers randomized",
+            description: `${entryCategory === "group" ? "Group" : "Solo"} entry numbers were saved.`,
+          });
+        },
+        onError: (error) => {
+          setEntryNumberError(error.data?.error || "Could not update entry numbers.");
+        },
+      },
+    );
+  };
+
+  const handleSaveEntryNumber = (schoolCode: "01" | "02" | "03" | "04" | "05") => {
+    const entryNo = Number(entryNumberDrafts[schoolCode]);
+    if (!Number.isSafeInteger(entryNo) || entryNo < 1) {
+      setEntryNumberError("Enter a positive whole number before saving.");
+      return;
+    }
+    setEntryNumberError("");
+    updateEntryNumber.mutate(
+      { category: entryCategory, schoolCode, data: { entryNo } },
+      {
+        onSuccess: (entry) => {
+          setEntryNumberDrafts((current) => ({
+            ...current,
+            [schoolCode]: entry.entryNo,
+          }));
+          refreshEntryNumberConsumers();
+          toast({
+            title: "Entry number saved",
+            description: `${entry.schoolName} is Entry ${entry.entryNo} in the ${entryCategory} category.`,
+          });
+        },
+        onError: (error) => {
+          setEntryNumberError(error.data?.error || "Could not save that entry number.");
+        },
+      },
+    );
+  };
 
   const scoresByJudge = useMemo(() => {
     const groups = new Map<string, NonNullable<typeof scores>>();
@@ -92,6 +179,147 @@ export default function Admin() {
       </div>
 
       <OrganizerGate title="Unlock score administration">
+      <Card className="border-primary/25 bg-card shadow-sm" data-testid="card-entry-number-setup">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Hash className="h-5 w-5 text-primary" />
+            Category Entry Number Setup
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            School codes and score ownership never change. These numbers apply only to the selected category and update score entry, results, audit history, and print forms.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {loadingEntryNumbers ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">Loading entry-number setup...</p>
+          ) : (
+            <>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow>
+                      <TableHead>School</TableHead>
+                      <TableHead className="text-center">Group entry</TableHead>
+                      <TableHead className="text-center">Solo entry</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {groupEntryNumbers.map((groupEntry) => {
+                      const soloEntry = soloEntryNumbers.find(
+                        (entry) => entry.schoolCode === groupEntry.schoolCode,
+                      );
+                      return (
+                        <TableRow key={groupEntry.schoolCode}>
+                          <TableCell>
+                            <span className="font-semibold">{groupEntry.schoolName}</span>
+                            <span className="ml-2 font-mono text-xs text-muted-foreground">Code {groupEntry.schoolCode}</span>
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-semibold">Entry {groupEntry.entryNo}</TableCell>
+                          <TableCell className="text-center font-mono font-semibold">Entry {soloEntry?.entryNo ?? "—"}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/35 p-4 space-y-4">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">Edit one category at a time</p>
+                    <p className="text-xs text-muted-foreground">Changes here apply only to the active category.</p>
+                  </div>
+                  <div className="flex rounded-md border border-input bg-background p-1">
+                    {(["group", "solo"] as const).map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => setEntryCategory(category)}
+                        className={`rounded px-3 py-1.5 text-sm font-semibold transition-colors ${
+                          entryCategory === category
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                        data-testid={`button-entry-number-category-${category}`}
+                      >
+                        {category === "group" ? "Group" : "Solo"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAssign("sequential")}
+                    disabled={assignEntryNumbers.isPending || updateEntryNumber.isPending}
+                    data-testid="button-assign-entry-numbers-sequential"
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                    Assign 01–05
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAssign("random")}
+                    disabled={assignEntryNumbers.isPending || updateEntryNumber.isPending}
+                    data-testid="button-randomize-entry-numbers"
+                  >
+                    <Shuffle className="h-4 w-4" />
+                    Randomize order
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {selectedCategoryEntries.map((entry) => (
+                    <div key={entry.schoolCode} className="flex items-center gap-2 rounded-md border border-border bg-background p-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{entry.schoolName}</p>
+                        <p className="text-xs text-muted-foreground">Code {entry.schoolCode} · {entryCategory}</p>
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={entryNumberDrafts[entry.schoolCode] ?? ""}
+                        onChange={(event) =>
+                          setEntryNumberDrafts((current) => ({
+                            ...current,
+                            [entry.schoolCode]: event.target.value,
+                          }))
+                        }
+                        className="h-9 w-16 rounded-md border border-input bg-background px-2 text-center font-mono text-sm"
+                        aria-label={`${entry.schoolName} ${entryCategory} entry number`}
+                        data-testid={`input-entry-number-${entryCategory}-${entry.schoolCode}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleSaveEntryNumber(entry.schoolCode)}
+                        disabled={assignEntryNumbers.isPending || updateEntryNumber.isPending}
+                        aria-label={`Save ${entry.schoolName} ${entryCategory} entry number`}
+                        data-testid={`button-save-entry-number-${entryCategory}-${entry.schoolCode}`}
+                      >
+                        <Save className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                {entryNumberError && (
+                  <p className="text-sm text-destructive" role="alert" data-testid="text-entry-number-error">
+                    {entryNumberError}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       <Card className="border-border bg-card shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl flex items-center justify-between">
@@ -180,7 +408,10 @@ export default function Admin() {
                                 {score.category}
                               </span>
                             </TableCell>
-                            <TableCell className="font-bold">{score.schoolName}</TableCell>
+                            <TableCell className="font-bold">
+                              {score.schoolName}
+                              <span className="ml-2 font-mono text-xs text-muted-foreground">Entry {score.entryNo}</span>
+                            </TableCell>
                             <TableCell className="text-right font-mono text-foreground/80">{score.rawCriterion1}</TableCell>
                             <TableCell className="text-right font-mono text-foreground/80">{score.rawCriterion2}</TableCell>
                             <TableCell className="text-right font-mono text-foreground/80">{score.rawCriterion3}</TableCell>

@@ -132,6 +132,85 @@ export interface ScoreInput {
   deductionCount: number;
 }
 
+export type EntryNumberCategory = typeof EntryNumberCategory[keyof typeof EntryNumberCategory];
+
+
+export const EntryNumberCategory = {
+  group: 'group',
+  solo: 'solo',
+} as const;
+
+export type EntryNumberSchoolCode = typeof EntryNumberSchoolCode[keyof typeof EntryNumberSchoolCode];
+
+
+export const EntryNumberSchoolCode = {
+  NUMBER_01: '01',
+  NUMBER_02: '02',
+  NUMBER_03: '03',
+  NUMBER_04: '04',
+  NUMBER_05: '05',
+} as const;
+
+export interface EntryNumber {
+  category: EntryNumberCategory;
+  schoolCode: EntryNumberSchoolCode;
+  schoolName: string;
+  entryNo: string;
+}
+
+export type EntryNumbers = EntryNumber[];
+
+export type EntryNumberAssignmentInputCategory = typeof EntryNumberAssignmentInputCategory[keyof typeof EntryNumberAssignmentInputCategory];
+
+
+export const EntryNumberAssignmentInputCategory = {
+  group: 'group',
+  solo: 'solo',
+} as const;
+
+export type EntryNumberAssignmentInputMode = typeof EntryNumberAssignmentInputMode[keyof typeof EntryNumberAssignmentInputMode];
+
+
+export const EntryNumberAssignmentInputMode = {
+  sequential: 'sequential',
+  random: 'random',
+} as const;
+
+export interface EntryNumberAssignmentInput {
+  category: EntryNumberAssignmentInputCategory;
+  mode: EntryNumberAssignmentInputMode;
+}
+
+export interface UpdateEntryNumberInput {
+  /**
+     * @minimum 1
+     * @maximum 2147483647
+     */
+  entryNo: number;
+}
+
+export type EntryNumberAssignmentCategory = typeof EntryNumberAssignmentCategory[keyof typeof EntryNumberAssignmentCategory];
+
+
+export const EntryNumberAssignmentCategory = {
+  group: 'group',
+  solo: 'solo',
+} as const;
+
+export type EntryNumberAssignmentMode = typeof EntryNumberAssignmentMode[keyof typeof EntryNumberAssignmentMode];
+
+
+export const EntryNumberAssignmentMode = {
+  sequential: 'sequential',
+  random: 'random',
+} as const;
+
+export interface EntryNumberAssignment {
+  category: EntryNumberAssignmentCategory;
+  mode: EntryNumberAssignmentMode;
+  entries: EntryNumber[];
+}
+
 export interface TabulationEntry {
   schoolCode: string;
   schoolName: string;

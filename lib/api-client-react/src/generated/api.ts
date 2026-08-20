@@ -22,6 +22,10 @@ import type {
 import type {
   AccessCodeInput,
   DeleteResult,
+  EntryNumber,
+  EntryNumberAssignment,
+  EntryNumberAssignmentInput,
+  EntryNumbers,
   ErrorResponse,
   HealthStatus,
   Judge,
@@ -33,7 +37,8 @@ import type {
   ScoreInput,
   Session,
   TabulationResult,
-  TabulationSummary
+  TabulationSummary,
+  UpdateEntryNumberInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -945,6 +950,228 @@ export const useDeleteScore = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getDeleteScoreMutationOptions(options));
+    }
+
+export const getListEntryNumbersUrl = () => {
+
+
+
+
+  return `/api/entry-numbers`
+}
+
+/**
+ * @summary List the current entry numbers for both categories
+ */
+export const listEntryNumbers = async ( options?: Parameters<typeof customFetch>[1]): Promise<EntryNumbers> => {
+
+  return customFetch<EntryNumbers>(getListEntryNumbersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEntryNumbersQueryKey = () => {
+    return [
+    `/api/entry-numbers`
+    ] as const;
+    }
+
+
+export const getListEntryNumbersQueryOptions = <TData = Awaited<ReturnType<typeof listEntryNumbers>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEntryNumbers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEntryNumbersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEntryNumbers>>> = ({ signal }) => listEntryNumbers({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEntryNumbers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListEntryNumbersQueryResult = NonNullable<Awaited<ReturnType<typeof listEntryNumbers>>>
+export type ListEntryNumbersQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the current entry numbers for both categories
+ */
+
+export function useListEntryNumbers<TData = Awaited<ReturnType<typeof listEntryNumbers>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listEntryNumbers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListEntryNumbersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAssignEntryNumbersUrl = () => {
+
+
+
+
+  return `/api/entry-numbers/assign`
+}
+
+/**
+ * @summary Assign all entry numbers in one category
+ */
+export const assignEntryNumbers = async (entryNumberAssignmentInput: EntryNumberAssignmentInput, options?: Parameters<typeof customFetch>[1]): Promise<EntryNumberAssignment> => {
+
+  return customFetch<EntryNumberAssignment>(getAssignEntryNumbersUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(entryNumberAssignmentInput)
+  }
+);}
+
+
+
+
+
+export const getAssignEntryNumbersMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignEntryNumbers>>, TError,{data: BodyType<EntryNumberAssignmentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof assignEntryNumbers>>, TError,{data: BodyType<EntryNumberAssignmentInput>}, TContext> => {
+
+const mutationKey = ['assignEntryNumbers'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignEntryNumbers>>, {data: BodyType<EntryNumberAssignmentInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  assignEntryNumbers(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AssignEntryNumbersMutationResult = NonNullable<Awaited<ReturnType<typeof assignEntryNumbers>>>
+    export type AssignEntryNumbersMutationBody = BodyType<EntryNumberAssignmentInput>
+    export type AssignEntryNumbersMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Assign all entry numbers in one category
+ */
+export const useAssignEntryNumbers = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignEntryNumbers>>, TError,{data: BodyType<EntryNumberAssignmentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof assignEntryNumbers>>,
+        TError,
+        {data: BodyType<EntryNumberAssignmentInput>},
+        TContext
+      > => {
+      return useMutation(getAssignEntryNumbersMutationOptions(options));
+    }
+
+export const getUpdateEntryNumberUrl = (category: 'group' | 'solo',
+    schoolCode: '01' | '02' | '03' | '04' | '05',) => {
+
+
+
+
+  return `/api/entry-numbers/${category}/${schoolCode}`
+}
+
+/**
+ * @summary Update one school's entry number in one category
+ */
+export const updateEntryNumber = async (category: 'group' | 'solo',
+    schoolCode: '01' | '02' | '03' | '04' | '05',
+    updateEntryNumberInput: UpdateEntryNumberInput, options?: Parameters<typeof customFetch>[1]): Promise<EntryNumber> => {
+
+  return customFetch<EntryNumber>(getUpdateEntryNumberUrl(category,schoolCode),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateEntryNumberInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateEntryNumberMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEntryNumber>>, TError,{category: 'group' | 'solo';schoolCode: '01' | '02' | '03' | '04' | '05';data: BodyType<UpdateEntryNumberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateEntryNumber>>, TError,{category: 'group' | 'solo';schoolCode: '01' | '02' | '03' | '04' | '05';data: BodyType<UpdateEntryNumberInput>}, TContext> => {
+
+const mutationKey = ['updateEntryNumber'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateEntryNumber>>, {category: 'group' | 'solo';schoolCode: '01' | '02' | '03' | '04' | '05';data: BodyType<UpdateEntryNumberInput>}> = (props) => {
+          const {category,schoolCode,data} = props ?? {};
+
+          return  updateEntryNumber(category,schoolCode,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateEntryNumberMutationResult = NonNullable<Awaited<ReturnType<typeof updateEntryNumber>>>
+    export type UpdateEntryNumberMutationBody = BodyType<UpdateEntryNumberInput>
+    export type UpdateEntryNumberMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update one school's entry number in one category
+ */
+export const useUpdateEntryNumber = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEntryNumber>>, TError,{category: 'group' | 'solo';schoolCode: '01' | '02' | '03' | '04' | '05';data: BodyType<UpdateEntryNumberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateEntryNumber>>,
+        TError,
+        {category: 'group' | 'solo';schoolCode: '01' | '02' | '03' | '04' | '05';data: BodyType<UpdateEntryNumberInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateEntryNumberMutationOptions(options));
     }
 
 export const getGetGroupTabulationUrl = () => {

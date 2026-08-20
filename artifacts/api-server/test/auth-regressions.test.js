@@ -56,6 +56,8 @@ function createFakeDatabase() {
     },
   ];
   const scores = [];
+  const entryNumbers = [];
+  const tableName = (table) => table?.[Symbol.for("drizzle:Name")];
 
   const database = {
     scores,
@@ -63,10 +65,15 @@ function createFakeDatabase() {
       const isJudgeSessionLookup = fields && "accessCodeHash" in fields;
       const isRosterLookup =
         fields && "name" in fields && "accessCodeVersion" in fields;
-      const records = isJudgeSessionLookup || isRosterLookup ? judges : scores;
 
       return {
-        from() {
+        from(table) {
+          const records =
+            tableName(table) === "entry_numbers"
+              ? entryNumbers
+              : isJudgeSessionLookup || isRosterLookup
+                ? judges
+                : scores;
           return {
             orderBy: async () => records.map((record) => ({ ...record })),
             where() {
@@ -100,9 +107,23 @@ function createFakeDatabase() {
         },
       };
     },
-    insert() {
+    insert(table) {
       return {
         values(values) {
+          if (tableName(table) === "entry_numbers") {
+            return {
+              onConflictDoNothing: async () => {
+                for (const value of values) {
+                  const exists = entryNumbers.some(
+                    (entry) =>
+                      entry.category === value.category &&
+                      entry.schoolCode === value.schoolCode,
+                  );
+                  if (!exists) entryNumbers.push({ ...value });
+                }
+              },
+            };
+          }
           return {
             returning: async () => {
               const score = {

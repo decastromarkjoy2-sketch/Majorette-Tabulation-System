@@ -233,6 +233,63 @@ export const DeleteScoreResponse = zod.object({
 
 
 /**
+ * @summary List the current entry numbers for both categories
+ */
+export const ListEntryNumbersResponseItem = zod.object({
+  "category": zod.enum(['group', 'solo']),
+  "schoolCode": zod.enum(['01', '02', '03', '04', '05']),
+  "schoolName": zod.string(),
+  "entryNo": zod.string()
+})
+export const ListEntryNumbersResponse = zod.array(ListEntryNumbersResponseItem)
+
+
+/**
+ * @summary Assign all entry numbers in one category
+ */
+export const AssignEntryNumbersBody = zod.object({
+  "category": zod.enum(['group', 'solo']),
+  "mode": zod.enum(['sequential', 'random'])
+})
+
+export const AssignEntryNumbersResponse = zod.object({
+  "category": zod.enum(['group', 'solo']),
+  "mode": zod.enum(['sequential', 'random']),
+  "entries": zod.array(zod.object({
+  "category": zod.enum(['group', 'solo']),
+  "schoolCode": zod.enum(['01', '02', '03', '04', '05']),
+  "schoolName": zod.string(),
+  "entryNo": zod.string()
+}))
+})
+
+
+/**
+ * @summary Update one school's entry number in one category
+ */
+export const UpdateEntryNumberParams = zod.object({
+  "category": zod.enum(['group', 'solo']),
+  "schoolCode": zod.enum(['01', '02', '03', '04', '05'])
+})
+
+export const updateEntryNumberBodyEntryNoMax = 2147483647;
+export const updateEntryNumberBodyEntryNoMultipleOf = 1;
+
+
+
+export const UpdateEntryNumberBody = zod.object({
+  "entryNo": zod.number().min(1).max(updateEntryNumberBodyEntryNoMax).multipleOf(updateEntryNumberBodyEntryNoMultipleOf)
+})
+
+export const UpdateEntryNumberResponse = zod.object({
+  "category": zod.enum(['group', 'solo']),
+  "schoolCode": zod.enum(['01', '02', '03', '04', '05']),
+  "schoolName": zod.string(),
+  "entryNo": zod.string()
+})
+
+
+/**
  * @summary Get group category tabulation and leaderboard
  */
 export const GetGroupTabulationResponse = zod.object({

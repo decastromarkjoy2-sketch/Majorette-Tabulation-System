@@ -18,6 +18,8 @@ tags:
     description: Score submission and retrieval
   - name: tabulation
     description: Tabulation and leaderboard
+  - name: entry-numbers
+    description: Organizer-managed category entry numbers
 
 paths:
   /auth/session:
@@ -336,6 +338,100 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /entry-numbers:
+    get:
+      operationId: listEntryNumbers
+      tags: [entry-numbers]
+      summary: List the current entry numbers for both categories
+      responses:
+        "200":
+          description: Category entry-number configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryNumbers"
+
+  /entry-numbers/assign:
+    post:
+      operationId: assignEntryNumbers
+      tags: [entry-numbers]
+      summary: Assign all entry numbers in one category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntryNumberAssignmentInput"
+      responses:
+        "200":
+          description: Updated category entry numbers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryNumberAssignment"
+        "400":
+          description: Invalid assignment request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Organizer authorization is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /entry-numbers/{category}/{schoolCode}:
+    patch:
+      operationId: updateEntryNumber
+      tags: [entry-numbers]
+      summary: Update one school's entry number in one category
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [group, solo]
+        - name: schoolCode
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: ["01", "02", "03", "04", "05"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEntryNumberInput"
+      responses:
+        "200":
+          description: Updated entry number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntryNumber"
+        "400":
+          description: Invalid entry number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Organizer authorization is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Entry number is already used in this category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /tabulation/group:
     get:
       operationId: getGroupTabulation
@@ -564,6 +660,72 @@ components:
         - rawCriterion2
         - rawCriterion3
         - deductionCount
+
+    EntryNumber:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [group, solo]
+        schoolCode:
+          type: string
+          enum: ["01", "02", "03", "04", "05"]
+        schoolName:
+          type: string
+        entryNo:
+          type: string
+      required:
+        - category
+        - schoolCode
+        - schoolName
+        - entryNo
+
+    EntryNumbers:
+      type: array
+      items:
+        $ref: "#/components/schemas/EntryNumber"
+
+    EntryNumberAssignmentInput:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [group, solo]
+        mode:
+          type: string
+          enum: [sequential, random]
+      required:
+        - category
+        - mode
+
+    UpdateEntryNumberInput:
+      type: object
+      properties:
+        entryNo:
+          type: number
+          minimum: 1
+          maximum: 2147483647
+          multipleOf: 1
+      required:
+        - entryNo
+
+    EntryNumberAssignment:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [group, solo]
+        mode:
+          type: string
+          enum: [sequential, random]
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntryNumber"
+      required:
+        - category
+        - mode
+        - entries
 
     TabulationEntry:
       type: object

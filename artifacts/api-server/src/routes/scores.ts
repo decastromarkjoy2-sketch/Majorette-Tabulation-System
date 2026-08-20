@@ -15,15 +15,8 @@ import {
   isDuplicateScoreSubmission,
   REQUIRED_JUDGE_COUNT,
 } from "../lib/scoring";
-
-// School lookup
-const SCHOOLS: Record<string, { name: string; entryNo: string }> = {
-  "01": { name: "GNHS", entryNo: "01" },
-  "02": { name: "PDSI", entryNo: "02" },
-  "03": { name: "CTPNHS", entryNo: "03" },
-  "04": { name: "PNHS", entryNo: "04" },
-  "05": { name: "BNHS", entryNo: "05" },
-};
+import { getEntryNumberMap, getEntryNumberRows } from "../lib/entry-numbers";
+import { getSchool } from "../lib/schools";
 
 function isUniqueViolation(error: unknown): boolean {
   return (
@@ -63,8 +56,18 @@ export function createScoresRouter(database: typeof db = db): IRouter {
             .from(scoresTable)
             .orderBy(scoresTable.createdAt);
 
+    const entryNumbers = await getEntryNumberRows(database);
+    const entryNumberBySchoolAndCategory = new Map(
+      entryNumbers.map((entry) => [
+        `${entry.category}:${entry.schoolCode}`,
+        entry.entryNo,
+      ]),
+    );
     const mapped = rows.map((r) => ({
       ...r,
+      entryNo:
+        entryNumberBySchoolAndCategory.get(`${r.category}:${r.schoolCode}`) ??
+        r.entryNo,
       rawCriterion1: Number(r.rawCriterion1),
       rawCriterion2: Number(r.rawCriterion2),
       rawCriterion3: Number(r.rawCriterion3),
@@ -106,12 +109,13 @@ export function createScoresRouter(database: typeof db = db): IRouter {
     }
     const judgeId = session.judgeId;
 
-    const school = SCHOOLS[schoolCode];
+    const school = getSchool(schoolCode);
     if (!school) {
       res.status(400).json({ error: "Invalid school code" });
       return;
     }
 
+    const entryNumbers = await getEntryNumberMap(database, category);
     const judges = await database
       .select({
         id: judgesTable.id,
@@ -168,7 +172,7 @@ export function createScoresRouter(database: typeof db = db): IRouter {
       })
     ) {
       res.status(409).json({
-        error: `${judge.name} has already submitted a ${category} score for ${school.name}.`,
+        error: `${judge.name} has already submitted a ${category} score for ${school.schoolName}.`,
       });
       return;
     }
@@ -195,8 +199,8 @@ export function createScoresRouter(database: typeof db = db): IRouter {
           judgeName: judge.name,
           category,
           schoolCode,
-          schoolName: school.name,
-          entryNo: school.entryNo,
+          schoolName: school.schoolName,
+          entryNo: entryNumbers.get(schoolCode) ?? "01",
           rawCriterion1: String(rawCriterion1),
           rawCriterion2: String(rawCriterion2),
           rawCriterion3: String(rawCriterion3),
@@ -211,7 +215,7 @@ export function createScoresRouter(database: typeof db = db): IRouter {
     } catch (error) {
       if (isUniqueViolation(error)) {
         res.status(409).json({
-          error: `${judge.name} has already submitted a ${category} score for ${school.name}.`,
+          error: `${judge.name} has already submitted a ${category} score for ${school.schoolName}.`,
         });
         return;
       }

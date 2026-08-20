@@ -1,4 +1,5 @@
 import { REQUIRED_JUDGE_COUNT } from "./scoring.ts";
+import { formatEntryNo, SCHOOLS } from "./schools.ts";
 
 const TIE_EPSILON = 1e-9;
 
@@ -33,14 +34,6 @@ const SOLO_AWARDS: Record<number, { award: string; prizeAmount: string }> = {
   5: { award: "5th Place", prizeAmount: "2,000" },
 };
 
-const SCHOOLS = [
-  { schoolCode: "01", schoolName: "GNHS", entryNo: "01" },
-  { schoolCode: "02", schoolName: "PDSI", entryNo: "02" },
-  { schoolCode: "03", schoolName: "CTPNHS", entryNo: "03" },
-  { schoolCode: "04", schoolName: "PNHS", entryNo: "04" },
-  { schoolCode: "05", schoolName: "BNHS", entryNo: "05" },
-];
-
 export type TabulationScore = {
   id: number;
   judgeId: number;
@@ -67,6 +60,7 @@ export function buildTabulationFromRows(
   category: "group" | "solo",
   scores: readonly TabulationScore[],
   judges: readonly TabulationJudge[],
+  entryNumbers = new Map<string, string>(),
 ) {
   const awards = category === "group" ? GROUP_AWARDS : SOLO_AWARDS;
   const registeredJudgeIds = new Set(judges.map((judge) => judge.id));
@@ -98,7 +92,7 @@ export function buildTabulationFromRows(
     return {
       schoolCode: school.schoolCode,
       schoolName: school.schoolName,
-      entryNo: school.entryNo,
+      entryNo: entryNumbers.get(school.schoolCode) ?? formatEntryNo(SCHOOLS.indexOf(school) + 1),
       judgeCount: count,
       isComplete,
       missingJudgeCount: Math.max(0, REQUIRED_JUDGE_COUNT - count),

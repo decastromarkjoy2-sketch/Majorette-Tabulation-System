@@ -11,6 +11,8 @@ import {
   useCreateJudgeSession,
   useDeleteSession,
   useGetSession,
+  useListEntryNumbers,
+  getListEntryNumbersQueryKey,
   ScoreInputSchoolCode,
   ScoreInputCategory
 } from "@workspace/api-client-react";
@@ -61,6 +63,16 @@ export default function ScoreEntry() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: judges, isLoading: loadingJudges } = useListJudges();
+  const {
+    data: entryNumbers,
+    isLoading: loadingEntryNumbers,
+    isError: entryNumbersError,
+  } = useListEntryNumbers({
+    query: {
+      queryKey: getListEntryNumbersQueryKey(),
+      refetchInterval: 5000,
+    },
+  });
   const { data: session, isLoading: loadingSession } = useGetSession();
   const createJudgeSession = useCreateJudgeSession();
   const deleteSession = useDeleteSession();
@@ -82,9 +94,24 @@ export default function ScoreEntry() {
   const criteria = category === "group" ? GROUP_CRITERIA : SOLO_CRITERIA;
   const rosterReady = judges?.length === REQUIRED_JUDGE_COUNT;
   const printableJudges = judges?.slice(0, REQUIRED_JUDGE_COUNT) ?? [];
+  const entryNumbersReady =
+    !loadingEntryNumbers &&
+    !entryNumbersError &&
+    entryNumbers != null &&
+    entryNumbers.length === SCHOOLS.length * 2;
+  const blankFormsReady = rosterReady && entryNumbersReady;
   const selectedJudgeId =
     session?.role === "judge" && session.judgeId != null ? session.judgeId : undefined;
   const selectedJudge = judges?.find((judge) => judge.id === selectedJudgeId);
+  const entryNumberBySchool = useMemo(
+    () =>
+      new Map<string, string>(
+        (entryNumbers ?? [])
+          .filter((entry) => entry.category === category)
+          .map((entry) => [entry.schoolCode, entry.entryNo]),
+      ),
+    [category, entryNumbers],
+  );
   const scoreQueryParams = useMemo(
     () => ({ category, judgeId: selectedJudgeId }),
     [category, selectedJudgeId],
@@ -119,6 +146,8 @@ export default function ScoreEntry() {
     const valid = !!(
       selectedJudgeId != null &&
       schoolCode &&
+      !loadingEntryNumbers &&
+      entryNumbers != null &&
       rosterReady &&
       !selectedSchoolAlreadyScored &&
       c1 !== "" && v1 >= 0 && v1 <= criteria[0].max &&
@@ -139,6 +168,8 @@ export default function ScoreEntry() {
     criteria,
     rosterReady,
     selectedSchoolAlreadyScored,
+    loadingEntryNumbers,
+    entryNumbers,
   ]);
 
   const handleJudgeSignIn = (event: React.FormEvent) => {
@@ -196,7 +227,7 @@ export default function ScoreEntry() {
         queryClient.invalidateQueries({ queryKey: getGetTabulationSummaryQueryKey() });
         toast({
           title: "Score Submitted Successfully",
-          description: `Score recorded for ${SCHOOLS.find(s => s.code === schoolCode)?.name} in ${category} category.`,
+          description: `Score recorded for Entry ${entryNumberBySchool.get(schoolCode) ?? "—"} — ${SCHOOLS.find((school) => school.code === (schoolCode as ScoreInputSchoolCode))?.name} in the ${category} category.`,
         });
         // Reset form for next entry
         setSchoolCode("");
@@ -403,6 +434,8 @@ export default function ScoreEntry() {
                       disabled={
                         selectedJudgeId == null ||
                         loadingExistingScores ||
+                         loadingEntryNumbers ||
+                         !entryNumbers ||
                         alreadyScored ||
                         !rosterReady
                       }
@@ -416,6 +449,9 @@ export default function ScoreEntry() {
                       }`}
                     >
                       <span className="block">{school.name}</span>
+                       <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
+                         Entry {entryNumberBySchool.get(school.code) ?? "—"}
+                       </span>
                       {alreadyScored && (
                         <span className="block text-[10px] uppercase tracking-wider">
                           Submitted
@@ -517,6 +553,11 @@ export default function ScoreEntry() {
               </div>
             </div>
 
+             {entryNumbersError && (
+               <p className="w-full text-sm text-destructive" role="alert">
+                 Blank forms cannot be printed until the current entry numbers load.
+               </p>
+             )}
              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
              <Button
                type="button"
@@ -524,8 +565,14 @@ export default function ScoreEntry() {
                size="lg"
                className="w-full min-w-0 px-3 text-sm uppercase tracking-wide sm:text-base"
                onClick={() => window.print()}
-                disabled={loadingJudges || !rosterReady}
-                title={!rosterReady ? "Register all three judges before printing the batch." : undefined}
+                 disabled={loadingJudges || !blankFormsReady}
+                 title={
+                   !rosterReady
+                     ? "Register all three judges before printing the batch."
+                     : !entryNumbersReady
+                       ? "Wait for the current entry numbers to load before printing."
+                       : undefined
+                 }
                data-testid="button-print-blank-score-form"
              >
                <Printer className="mr-2 h-5 w-5" />
@@ -547,7 +594,7 @@ export default function ScoreEntry() {
       </form>
       </div>
 
-      {printableJudges.map((judge) => (
+      {entryNumbersReady && printableJudges.map((judge) => (
       <section
         key={judge.id}
         className="print-blank-score-form"
@@ -578,6 +625,8 @@ export default function ScoreEntry() {
               {SCHOOLS.map((school) => (
                 <span key={school.code}>
                   <span className="print-blank-score-form__checkbox" /> {school.name}
+                  {" "}— Group {entryNumbers?.find((entry) => entry.category === "group" && entry.schoolCode === school.code)?.entryNo ?? "—"}
+                  {" "}· Solo {entryNumbers?.find((entry) => entry.category === "solo" && entry.schoolCode === school.code)?.entryNo ?? "—"}
                 </span>
               ))}
             </div>

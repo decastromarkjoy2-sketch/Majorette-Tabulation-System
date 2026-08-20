@@ -1,3 +1,4 @@
 - [OpenAPI whole-number validation](openapi-whole-number-validation.md) — represent integer-like API fields with `number` plus `multipleOf: 1` in this workspace.
 - [Official tie-break policy](official-tie-break-policy.md) — rank equal final averages by criteria, then deductions, then school code; show policy and application status.
 - [Node TypeScript test imports](node-typescript-test-imports.md) — Node 24 type-stripping tests require explicit `.ts` specifiers between directly tested TypeScript modules.
+- [Drizzle unique-constraint errors](drizzle-unique-constraint-errors.md) — PostgreSQL constraint codes may sit under a Drizzle error's `cause`, not on the outer exception.
