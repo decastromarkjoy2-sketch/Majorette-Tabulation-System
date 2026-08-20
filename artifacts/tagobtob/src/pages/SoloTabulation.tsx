@@ -4,8 +4,10 @@ import {
 } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircle2, FileCheck, Trophy, User } from "lucide-react";
+import { CheckCircle2, FileCheck, Trophy, User, Printer } from "lucide-react";
+import { OfficialResultsPrintout } from "@/components/printing/OfficialResultsPrintout";
 
 export default function SoloTabulation() {
   const { data: tabulation, isLoading, error } = useGetSoloTabulation({
@@ -57,6 +59,9 @@ export default function SoloTabulation() {
     (entry) => entry.rank != null && entry.rank <= 3,
   );
   const allEntriesComplete = completedEntries.length === sortedEntries.length;
+  const officialEntries = completedEntries
+    .filter((entry) => entry.rank != null)
+    .sort((a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER));
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
@@ -68,9 +73,15 @@ export default function SoloTabulation() {
           </h1>
           <p className="text-muted-foreground mt-1">Three-judge average, deductions, and automatic awards</p>
         </div>
-        <div className="flex gap-4 text-sm text-muted-foreground bg-card px-4 py-2 rounded-lg border border-border shadow-sm">
-          <span className="flex items-center gap-2"><User className="h-4 w-4" /> {tabulation.totalJudges}/{tabulation.requiredJudgeCount} Judges Registered</span>
-          <span className="flex items-center gap-2"><FileCheck className="h-4 w-4" /> {tabulation.totalScoresSubmitted} Scores Logged</span>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="flex gap-4 text-sm text-muted-foreground bg-card px-4 py-2 rounded-lg border border-border shadow-sm">
+            <span className="flex items-center gap-2"><User className="h-4 w-4" /> {tabulation.totalJudges}/{tabulation.requiredJudgeCount} Judges Registered</span>
+            <span className="flex items-center gap-2"><FileCheck className="h-4 w-4" /> {tabulation.totalScoresSubmitted} Scores Logged</span>
+          </div>
+          <Button type="button" variant="outline" onClick={() => window.print()} data-testid="button-print-solo-results">
+            <Printer className="h-4 w-4" />
+            Print Official Results
+          </Button>
         </div>
       </div>
 
@@ -239,6 +250,11 @@ export default function SoloTabulation() {
           </div>
         </CardContent>
       </Card>
+      <OfficialResultsPrintout
+        category="Solo / Mother Majorette Category"
+        entries={officialEntries}
+        provisionalCount={sortedEntries.length - completedEntries.length}
+      />
     </div>
   );
 }

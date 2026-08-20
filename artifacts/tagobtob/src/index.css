@@ -164,6 +164,10 @@
   display: none;
 }
 
+.print-official-results {
+  display: none;
+}
+
 @media print {
   @page {
     size: A4;
@@ -185,6 +189,11 @@
     visibility: visible !important;
   }
 
+  .print-official-results,
+  .print-official-results * {
+    visibility: visible !important;
+  }
+
   .print-blank-score-form {
     display: block !important;
     position: absolute;
@@ -193,6 +202,200 @@
     color: #111;
     background: #fff;
     font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .print-official-results {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    color: #111;
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .print-official-results__header {
+    border-bottom: 2px solid #111;
+    padding-bottom: 10px;
+    text-align: center;
+  }
+
+  .print-official-results__eyebrow {
+    margin: 0 0 6px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+
+  .print-official-results__header h1 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 21px;
+    line-height: 1.2;
+  }
+
+  .print-official-results__header h2 {
+    margin: 6px 0 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 15px;
+  }
+
+  .print-official-results__header p:last-child {
+    margin: 6px 0 0;
+    font-size: 10px;
+  }
+
+  .print-official-results__awardees {
+    margin: 14px 0 16px;
+  }
+
+  .print-official-results__awardees h3,
+  .print-official-results__rankings h3,
+  .print-official-results__signatures h3 {
+    margin: 0 0 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .print-official-results__awardee-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid #111;
+  }
+
+  .print-official-results__awardee {
+    display: flex;
+    min-height: 72px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 7px 9px;
+    border-right: 1px solid #111;
+  }
+
+  .print-official-results__awardee:last-child {
+    border-right: 0;
+  }
+
+  .print-official-results__awardee-rank {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .print-official-results__awardee strong {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 13px;
+  }
+
+  .print-official-results__awardee span:not(.print-official-results__awardee-rank) {
+    font-size: 10px;
+  }
+
+  .print-official-results__empty {
+    margin: 0;
+    border: 1px solid #111;
+    padding: 10px;
+  }
+
+  .print-official-results__section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .print-official-results__section-heading p {
+    margin: 0 0 7px;
+    font-size: 9px;
+    font-style: italic;
+  }
+
+  .print-official-results__rankings table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+  }
+
+  .print-official-results__rankings th,
+  .print-official-results__rankings td {
+    border: 1px solid #111;
+    padding: 6px 5px;
+    text-align: right;
+    vertical-align: middle;
+  }
+
+  .print-official-results__rankings th {
+    font-size: 9px;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .print-official-results__rankings th:first-child,
+  .print-official-results__rankings td:first-child {
+    width: 7%;
+    text-align: center;
+  }
+
+  .print-official-results__rankings th:nth-child(2),
+  .print-official-results__rankings td:nth-child(2) {
+    width: 27%;
+    text-align: left;
+  }
+
+  .print-official-results__rankings th:nth-child(7),
+  .print-official-results__rankings td:nth-child(7) {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .print-official-results__rankings td strong {
+    display: block;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11px;
+  }
+
+  .print-official-results__rankings td small {
+    display: block;
+    margin-top: 2px;
+    font-size: 8px;
+  }
+
+  .print-official-results__signatures {
+    margin-top: 30px;
+    page-break-inside: avoid;
+  }
+
+  .print-official-results__signature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-top: 25px;
+  }
+
+  .print-official-results__signature {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: center;
+  }
+
+  .print-official-results__signature > span {
+    display: block;
+    height: 1px;
+    border-top: 1px solid #111;
+  }
+
+  .print-official-results__signature strong {
+    font-size: 10px;
+  }
+
+  .print-official-results__signature small {
+    font-size: 8px;
   }
 
   .print-blank-score-form__header {
