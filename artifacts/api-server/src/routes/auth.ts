@@ -13,6 +13,7 @@ import {
   verifyAccessCode,
   verifyOrganizerCode,
 } from "../lib/auth";
+import { logger } from "../lib/logger";
 
 export function createAuthRouter(database: typeof db = db): IRouter {
   const router: IRouter = Router();
@@ -38,13 +39,10 @@ export function createAuthRouter(database: typeof db = db): IRouter {
       return;
     }
     if (!process.env.ORGANIZER_ACCESS_CODE) {
-      req.log.error("Organizer access code is not configured");
-      res
-        .status(503)
-        .json({
-          error:
-            "Organizer access is not configured. Contact the system owner.",
-        });
+      logger.error("Organizer access code is not configured");
+      res.status(503).json({
+        error: "Organizer access is not configured. Contact the system owner.",
+      });
       return;
     }
     if (!verifyOrganizerCode(parsed.data.accessCode)) {
