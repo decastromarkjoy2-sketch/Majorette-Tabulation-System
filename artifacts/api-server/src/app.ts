@@ -1,7 +1,11 @@
-import express, { type Express } from "express";
+import express, {
+  type Express,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import pinoHttp from "pino-http";
 import { db } from "@workspace/db";
 import { createApiRouter } from "./routes";
 import { logger } from "./lib/logger";
@@ -9,26 +13,21 @@ import { logger } from "./lib/logger";
 export function createApp(database: typeof db = db): Express {
   const app: Express = express();
 
-  app.use(
-    // @ts-ignore
-    pinoHttp({
-      logger,
-      serializers: {
-        req(req: any) {
-          return {
-            id: req.id,
-            method: req.method,
-            url: req.url?.split("?")[0],
-          };
-        },
-        res(res: any) {
-          return {
-            statusCode: res.statusCode,
-          };
-        },
-      },
-    }),
-  );
+  // Lightweight custom request logger middleware
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = Date.now();
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      logger.info({
+        method: req.method,
+        url: req.url?.split("?")[0],
+        statusCode: res.statusCode,
+        duration: `${duration}ms`,
+      });
+    });
+    next();
+  });
+
   app.use(cors());
   app.use(cookieParser());
   app.use(express.json());
