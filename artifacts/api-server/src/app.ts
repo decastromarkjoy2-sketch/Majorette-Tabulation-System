@@ -1,26 +1,28 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import pinoHttp from "pino-http";
+import * as pinoHttp from "pino-http";
 import { db } from "@workspace/db";
 import { createApiRouter } from "./routes";
 import { logger } from "./lib/logger";
+
+const httpLogger = (pinoHttp as any).default || pinoHttp;
 
 export function createApp(database: typeof db = db): Express {
   const app: Express = express();
 
   app.use(
-    pinoHttp({
+    httpLogger({
       logger,
       serializers: {
-        req(req) {
+        req(req: any) {
           return {
             id: req.id,
             method: req.method,
             url: req.url?.split("?")[0],
           };
         },
-        res(res) {
+        res(res: any) {
           return {
             statusCode: res.statusCode,
           };
