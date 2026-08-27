@@ -1,18 +1,17 @@
-import express, { type Express, type Request, type Response } from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import * as pinoHttp from "pino-http";
+import pinoHttp from "pino-http";
 import { db } from "@workspace/db";
 import { createApiRouter } from "./routes";
 import { logger } from "./lib/logger";
 
-const httpLogger = (pinoHttp as any).default || pinoHttp;
-
 export function createApp(database: typeof db = db): Express {
   const app: Express = express();
 
+  // @ts-ignore
   app.use(
-    httpLogger({
+    pinoHttp({
       logger,
       serializers: {
         req(req: any) {
