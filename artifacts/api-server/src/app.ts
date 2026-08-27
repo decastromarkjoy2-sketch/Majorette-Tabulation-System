@@ -9,8 +9,8 @@ import { logger } from "./lib/logger";
 export function createApp(database: typeof db = db): Express {
   const app: Express = express();
 
-  // @ts-ignore
   app.use(
+    // @ts-ignore
     pinoHttp({
       logger,
       serializers: {
